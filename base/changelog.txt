@@ -1,0 +1,6 @@
+--------2j--------
+Features:
+added example2.php which demonstrates a more feature rich use
+
+BugFix:
+dates were being rolled back by one day
