@@ -8,6 +8,10 @@ if(!$allow_url_override || !isset($max_rows))
 {
 	$max_rows = 0; //USE 0 for no max
 }
+if(!$allow_url_override || !isset($max_cols))
+{
+	$max_cols = 5; //USE 0 for no max
+}
 if(!$allow_url_override || !isset($debug))
 {
 	$debug = 0;  //1 for on 0 for off
@@ -16,7 +20,6 @@ if(!$allow_url_override || !isset($force_nobr))
 {
 	$force_nobr = 1;  //Force the info in cells not to wrap unless stated explicitly (newline)
 }
-
 
 require_once 'Excel/reader.php';
 $data = new Spreadsheet_Excel_Reader();
@@ -87,16 +90,15 @@ for($sheet=0;$sheet<count($data->sheets);$sheet++)
 	$table_output[$sheet] .= "<TABLE CLASS='table_body'>
 	<TR>
 		<TD>&nbsp;</TD>";
-	for($i=0;$i<$data->sheets[$sheet]['numCols'];$i++)
+	for($i=0;$i<$data->sheets[$sheet]['numCols']&&($i<=$max_cols||$max_cols==0);$i++)
 	{
 		$table_output[$sheet] .= "<TD CLASS='table_sub_heading' ALIGN=CENTER>" . make_alpha_from_numbers($i) . "</TD>";
 	}
 	for($row=1;$row<=$data->sheets[$sheet]['numRows']&&($row<=$max_rows||$max_rows==0);$row++)
 	{
 		$table_output[$sheet] .= "<TR><TD CLASS='table_sub_heading'>" . $row . "</TD>";
-		for($col=1;$col<=$data->sheets[$sheet]['numCols'];$col++)
+		for($col=1;$col<=$data->sheets[$sheet]['numCols']&&($col<=$max_cols||$max_cols==0);$col++)
 		{
-			
 			if($data->sheets[$sheet]['cellsInfo'][$row][$col]['colspan'] >=1 && $data->sheets[$sheet]['cellsInfo'][$row][$col]['rowspan'] >=1)
 			{
 				$this_cell_colspan = " COLSPAN=" . $data->sheets[$sheet]['cellsInfo'][$row][$col]['colspan'];
@@ -154,15 +156,16 @@ for($sheet=0;$sheet<count($data->sheets);$sheet++)
 		$table_output[$sheet] .= "</TR>";
 	}
 	$table_output[$sheet] .= "</TABLE>";
-	if($debug)
-	{
-		$table_output[$sheet] .= "<PRE>";
-		$table_output[$sheet] .= print_r($data->sheets[$sheet],true);
-		$table_output[$sheet] .= "</PRE>";
-	}
 	$table_output[$sheet] = str_replace("\n","",$table_output[$sheet]);
 	$table_output[$sheet] = str_replace("\r","",$table_output[$sheet]);
 	$table_output[$sheet] = str_replace("\t"," ",$table_output[$sheet]);
+	if($debug)
+	{
+		$debug_output = print_r($data->sheets[$sheet],true);
+		$debug_output = str_replace("\n","\\n",$debug_output);
+		$debug_output = str_replace("\r","\\r",$debug_output);
+		$table_output[$sheet] .= "<PRE>$debug_output</PRE>";
+	}
 	echo "sheet_HTML[$sheet] = \"$table_output[$sheet]\";\n";
 }
 echo "
