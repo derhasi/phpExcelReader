@@ -39,7 +39,7 @@ echo "
 	font-weight:bold;
 	border-style:ridge;
 	border-width:1;
-	pointer:finger;
+	cursor:pointer;
 }
 .table_sub_heading
 {
@@ -66,7 +66,7 @@ echo "
 	font-weight:bold;
 	border-style:groove;
 	border-width:1;
-	pointer:finger;
+	cursor:pointer;
 }
 </STYLE>
 ";
