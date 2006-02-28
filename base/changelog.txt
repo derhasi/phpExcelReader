@@ -1,3 +1,7 @@
+--------2k--------
+BugFix :
+added patch by Rberto Innocenti - robyinno to fix infinite loop on 64 bit processors
+
 --------2j--------
 Features:
 added example2.php which demonstrates a more feature rich use
