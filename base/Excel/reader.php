@@ -713,7 +713,7 @@ class Spreadsheet_Excel_Reader {
     function createDate($numValue){
         if ($numValue > 1){
             $utcDays = $numValue - ($this->nineteenFour ? Spreadsheet_Excel_Reader_utcOffsetDays1904 : Spreadsheet_Excel_Reader_utcOffsetDays);
-            $utcValue = round($utcDays+1 * Spreadsheet_Excel_Reader_msInADay);
+            $utcValue = round(($utcDays+1) * Spreadsheet_Excel_Reader_msInADay);
             $string = date ($this->curformat, $utcValue);
             $raw = $utcValue;
         }else{
