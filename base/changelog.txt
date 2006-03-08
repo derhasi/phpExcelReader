@@ -1,6 +1,8 @@
 --------2k--------
 BugFix :
-added patch by Rberto Innocenti - robyinno to fix infinite loop on 64 bit processors
+added patch by Rberto Innocenti - robyinno to fix infinite loop on 64 bit processors.
+fixed order of operations error on date fields.
+
 
 --------2j--------
 Features:
