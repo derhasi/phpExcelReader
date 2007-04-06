@@ -2,29 +2,29 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
-* A class for reading Microsoft Excel Spreadsheets.
-*
-* Originally developed by Vadim Tkachenko under the name PHPExcelReader.
-* (http://sourceforge.net/projects/phpexcelreader)
-* Based on the Java version by Andy Khan (http://www.andykhan.com).  Now
-* maintained by David Sanders.  Reads only Biff 7 and Biff 8 formats.
-*
-* PHP versions 4 and 5
-*
-* LICENSE: This source file is subject to version 3.0 of the PHP license
-* that is available through the world-wide-web at the following URI:
-* http://www.php.net/license/3_0.txt.  If you did not receive a copy of
-* the PHP License and are unable to obtain it through the web, please
-* send a note to license@php.net so we can mail you a copy immediately.
-*
-* @category   Spreadsheet
-* @package    Spreadsheet_Excel_Reader
-* @author     Vadim Tkachenko <vt@apachephp.com>
-* @license    http://www.php.net/license/3_0.txt  PHP License 3.0
-* @version    CVS: $Id: reader.php 19 2007-03-13 12:42:41Z shangxiao $
-* @link       http://pear.php.net/package/Spreadsheet_Excel_Reader
-* @see        OLE, Spreadsheet_Excel_Writer
-*/
+ * A class for reading Microsoft Excel Spreadsheets.
+ *
+ * Originally developed by Vadim Tkachenko under the name PHPExcelReader.
+ * (http://sourceforge.net/projects/phpexcelreader)
+ * Based on the Java version by Andy Khan (http://www.andykhan.com).  Now
+ * maintained by David Sanders.  Reads only Biff 7 and Biff 8 formats.
+ *
+ * PHP versions 4 and 5
+ *
+ * LICENSE: This source file is subject to version 3.0 of the PHP license
+ * that is available through the world-wide-web at the following URI:
+ * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
+ * the PHP License and are unable to obtain it through the web, please
+ * send a note to license@php.net so we can mail you a copy immediately.
+ *
+ * @category   Spreadsheet
+ * @package    Spreadsheet_Excel_Reader
+ * @author     Vadim Tkachenko <vt@apachephp.com>
+ * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @version    CVS: $Id: reader.php 19 2007-03-13 12:42:41Z shangxiao $
+ * @link       http://pear.php.net/package/Spreadsheet_Excel_Reader
+ * @see        OLE, Spreadsheet_Excel_Writer
+ */
 
 
 //require_once 'PEAR.php';
@@ -40,7 +40,7 @@ define('SPREADSHEET_EXCEL_READER_STREAM_NAME_BIFF7', 'Book');
 define('SPREADSHEET_EXCEL_READER_STREAM_NAME_BIFF8', 'Workbook');
 
 define('SPREADSHEET_EXCEL_READER_TYPE_BOF',          0x809);
-define('SPREADSHEET_EXCEL_READER_TYPE_EOF',          0x0a);
+define('SPREADSHEET_EXCEL_READER_TYPE_EOF',          0xa);
 define('SPREADSHEET_EXCEL_READER_TYPE_BOUNDSHEET',   0x85);         // 6.12
 define('SPREADSHEET_EXCEL_READER_TYPE_DIMENSIONS',   0x200);
 define('SPREADSHEET_EXCEL_READER_TYPE_ROW',          0x208);
@@ -53,7 +53,6 @@ define('SPREADSHEET_EXCEL_READER_TYPE_SST',          0xfc);         // 6.96
 define('SPREADSHEET_EXCEL_READER_TYPE_EXTSST',       0xff);         // 6.40
 define('SPREADSHEET_EXCEL_READER_TYPE_CONTINUE',     0x3c);
 define('SPREADSHEET_EXCEL_READER_TYPE_NAME',         0x18);
-define('SPREADSHEET_EXCEL_READER_TYPE_ARRAY',        0x221);
 define('SPREADSHEET_EXCEL_READER_TYPE_STRING',       0x207);
 define('SPREADSHEET_EXCEL_READER_TYPE_FORMAT',       0x41e);        // 6.45
 define('SPREADSHEET_EXCEL_READER_TYPE_XF',           0xe0);         // 6.115
@@ -123,8 +122,9 @@ define('SPREADSHEET_EXCEL_READER_TYPE_RSTRING',             0xd6);
 // formula cell block
 
 define('SPREADSHEET_EXCEL_READER_TYPE_FORMULA',             0x6);
-
-
+define('SPREADSHEET_EXCEL_READER_TYPE_ARRAY',               0x221);
+define('SPREADSHEET_EXCEL_READER_TYPE_SHRFMLA',             0x4bc);
+define('SPREADSHEET_EXCEL_READER_TYPE_TABLEOP',             0x236);
 
 define('SPREADSHEET_EXCEL_READER_RESULT_NOTFLOAT',          0xffff);
 
@@ -132,6 +132,17 @@ define('SPREADSHEET_EXCEL_READER_RESULT_STRING',            0x00);
 define('SPREADSHEET_EXCEL_READER_RESULT_BOOL',              0x01);
 define('SPREADSHEET_EXCEL_READER_RESULT_ERROR',             0x02);
 define('SPREADSHEET_EXCEL_READER_RESULT_EMPTY',             0x03);
+
+
+// worksheet view settings blick
+
+define('SPREADSHEET_EXCEL_READER_TYPE_WINDOW2',             0x23e);
+define('SPREADSHEET_EXCEL_READER_TYPE_SCL',                 0xa0);
+define('SPREADSHEET_EXCEL_READER_TYPE_PANE',                0x41);
+define('SPREADSHEET_EXCEL_READER_TYPE_SELECTION',           0x1d);
+
+
+define('SPREADSHEET_EXCEL_READER_TYPE_PHONETIC',            0xef);
 
 
 define('SPREADSHEET_EXCEL_READER_UTCOFFSETDAYS' ,    25569);
@@ -166,22 +177,22 @@ define('SMALL_BLOCK_THRESHOLD', 0x1000);
 */
 
 /**
-* A class for reading Microsoft Excel Spreadsheets.
-*
-* Originally developed by Vadim Tkachenko under the name PHPExcelReader.
-* (http://sourceforge.net/projects/phpexcelreader)
-* Based on the Java version by Andy Khan (http://www.andykhan.com).  Now
-* maintained by David Sanders.  Reads only Biff 7 and Biff 8 formats.
-*
-* @category   Spreadsheet
-* @package    Spreadsheet_Excel_Reader
-* @author     Vadim Tkachenko <vt@phpapache.com>
-* @copyright  1997-2005 The PHP Group
-* @license    http://www.php.net/license/3_0.txt  PHP License 3.0
-* @version    Release: @package_version@
-* @link       http://pear.php.net/package/PackageName
-* @see        OLE, Spreadsheet_Excel_Writer
-*/
+ * A class for reading Microsoft Excel Spreadsheets.
+ *
+ * Originally developed by Vadim Tkachenko under the name PHPExcelReader.
+ * (http://sourceforge.net/projects/phpexcelreader)
+ * Based on the Java version by Andy Khan (http://www.andykhan.com).  Now
+ * maintained by David Sanders.  Reads only Biff 7 and Biff 8 formats.
+ *
+ * @category   Spreadsheet
+ * @package    Spreadsheet_Excel_Reader
+ * @author     Vadim Tkachenko <vt@phpapache.com>
+ * @copyright  1997-2005 The PHP Group
+ * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @version    Release: @package_version@
+ * @link       http://pear.php.net/package/PackageName
+ * @see        OLE, Spreadsheet_Excel_Writer
+ */
 class Spreadsheet_Excel_Reader
 {
     var $version;
@@ -657,6 +668,7 @@ echo "richtext: $richtext\n";
     function _readResult()
     {
         $pos = ftell($this->data);
+echo "POS: ".dechex($pos)."\n";
         fseek($this->data, 6, SEEK_CUR);
         $is_float = ($this->_readIntLE(2) !== SPREADSHEET_EXCEL_READER_RESULT_NOTFLOAT);
         fseek($this->data, $pos);
@@ -693,7 +705,9 @@ echo "richtext: $richtext\n";
      */
     function _readFormula()
     {
+echo "POS: ".dechex(ftell($this->data))."\n";
         $size = $this->_readIntLE(2);
+echo "formula size: $size\n";
         $formula = fread($this->data, $size);
         // todo detect additional data
     }
@@ -738,6 +752,38 @@ echo "dividing...\n";
         }
 
         return $number;
+    }
+
+
+    /**
+     *
+     */
+    function _readCellRangeAddress($col_size)
+    {
+        $first_row_index = $this->_readIntLE(2);
+        $last_row_index  = $this->_readIntLE(2);
+        $first_col_index = $this->_readIntLE($col_size);
+        $last_col_index  = $this->_readIntLE($col_size);
+
+        return array($first_row_index,
+                     $last_row_index,
+                     $first_col_index,
+                     $last_col_index);
+    }
+
+
+    /**
+     *
+     */
+    function _readCellRangeAddressList($col_size)
+    {
+        $an_array = array();
+        $num_cells = $this->_readIntLE(2);
+        for ($i = 0; $i < $num_cells; $i++) {
+            $an_array[] = $this->_readCellRangeAddress($col_size);
+        }
+
+        return $an_array;
     }
 
 
@@ -1278,6 +1324,8 @@ echo "length:        $length which is 0x".dechex($length)."\n";
 
         assert($code == SPREADSHEET_EXCEL_READER_TYPE_BOF);
 
+        $row_block_count = 0;
+
         while($code != SPREADSHEET_EXCEL_READER_TYPE_EOF) {
 
             $this->sheets[$sheet_index]['maxrow'] = $this->_rowoffset - 1;
@@ -1616,6 +1664,9 @@ echo "row\n";
                     $row_height = $this->_readIntLE(2);
                     fseek($this->data, 4, SEEK_CUR);
                     $options    = $this->_readIntLE(4);
+
+                    $row_block_count++;
+
                     break;
 
 
@@ -1740,7 +1791,7 @@ echo "type mulrk"."\n";
                             $string = sprintf($this->curformat, $numValue * $this->multiplier);
                         }
 
-                        $this->addcell($row_index, $first_col_index + $i, $string, $raw);
+                        $this->addcell($sheet_index, $row_index, $first_col_index + $i, $string, $raw);
                     }
 
                     break;
@@ -1750,7 +1801,7 @@ echo "type mulrk"."\n";
                 // Section 6.68
 
                 case SPREADSHEET_EXCEL_READER_TYPE_NUMBER:
-echo "type number";
+echo "type number\n";
 
                     $row_index = $this->_readIntLE(2);
                     $col_index = $this->_readIntLE(2);
@@ -1832,7 +1883,7 @@ echo "type formula\n";
                     // todo result may be stored in 1 of 5 ways
                     $result    = $this->_readResult();
                     $options   = $this->_readIntLE(2);
-                    fseek($this->data, 4);
+                    fseek($this->data, 4, SEEK_CUR);
                     // todo read the formula data
                     $formula   = $this->_readFormula();
 
@@ -1850,9 +1901,106 @@ echo "type formula\n";
                             $string = sprintf($this->curformat, $raw * $this->multiplier);
                         }
 
-                        $this->addcell($row, $column, $string, $raw);
+                        $this->addcell($sheet_index, $row_index, $col_index, $string, $raw);
                     }
 
+                    break;
+
+
+                case SPREADSHEET_EXCEL_READER_TYPE_ARRAY:
+
+                    // TODO
+                    fseek($this->data, 12, SEEK_CUR);
+                    $this->_readFormula();
+                    break;
+
+
+                // Shared Formula
+                // Section 6.94
+                case SPREADSHEET_EXCEL_READER_TYPE_SHRFMLA:
+                    
+                    // TODO
+                    fseek($this->data, 8, SEEK_CUR);
+                    $this->_readFormula();
+                    break;
+
+
+                case SPREADSHEET_EXCEL_READER_TYPE_TABLEOP:
+
+                    // TODO
+                    fseek($this->data, 16, SEEK_CUR);
+                    break;
+
+
+                case SPREADSHEET_EXCEL_READER_TYPE_DBCELL:
+echo 'type dbcell'."\n";
+
+                    //todo?
+                    fseek($this->data, $row_block_count * 2 + 4, SEEK_CUR);
+                    $row_block_count = 0;
+                    break;
+
+
+                //
+                // Worksheet View Settings Block
+                //
+
+                case SPREADSHEET_EXCEL_READER_TYPE_WINDOW2:
+echo "type window2\n";
+                    $options   = $this->_readIntLE(2);
+                    $row_index = $this->_readIntLE(2);
+                    $col_index = $this->_readIntLE(2);
+
+                    if ($this->version == SPREADSHEET_EXCEL_READER_BIFF7) {
+
+                        $gridline_colour = $this->_readIntLE(4);
+
+                    } else {
+
+                        $gridline_colour_index    = $this->_readIntLE(2);
+
+                        fseek($this->data, 2, SEEK_CUR);
+
+                        $page_break_magnification = $this->_readIntLE(2);
+                        $normal_magnification     = $this->_readIntLE(2);
+
+                        fseek($this->data, 4, SEEK_CUR);
+                    }
+
+                    break;
+
+
+                case SPREADSHEET_EXCEL_READER_TYPE_SCL:
+echo "type scl\n";
+                    // todo needed?
+                    fseek($this->data, 2, SEEK_CUR);
+                    break;
+
+
+                case SPREADSHEET_EXCEL_READER_TYPE_PANE:
+echo "type pane\n";
+                    // todo needed?
+                    fseek($this->data, 9, SEEK_CUR);
+                    break;
+
+
+                case SPREADSHEET_EXCEL_READER_TYPE_SELECTION:
+echo "type selection\n";
+                    // todo store
+                    $pane_id          = $this->_readIntLE(1);
+                    $row_index        = $this->_readIntLE(2);
+                    $col_index        = $this->_readIntLE(2);
+                    $cell_range_index = $this->_readIntLE(2);
+                    $selected_cells   = $this->_readCellRangeAddressList(1);
+                    break;
+
+
+                case SPREADSHEET_EXCEL_READER_TYPE_PHONETIC:
+echo "type phonetic\n";
+                    // todo store
+                    $font_index     = $this->_readIntLE(2);
+                    $settings       = $this->_readIntLE(2);
+                    $phonetic_cells = $this->_readCellRangeAddressList(2);
                     break;
 
 
@@ -1877,10 +2025,6 @@ exit;
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_DBCELL:
-                    break;
-
-
                 case SPREADSHEET_EXCEL_READER_TYPE_CALCMODE:
 
                     $this->calcmode = $this->_readIntLE(2);
@@ -1890,28 +2034,31 @@ return;
                     break;
 
                 default:
-                    echo "UNKNOWN RECORD TYPE\n";
+                    // 0x8c8 ?
+
+                    echo "WARNING: UNKNOWN RECORD TYPE\n";
                     echo 'File position: '. dechex(ftell($this->data))."\n";
                     echo "Default data:\n";
                     echo fread($this->data, $length);
-                    echo "\n";
-                    exit;
+                    echo "\n\n";
                     break;
             }
 
             $code   = $this->_readIntLE(2);
             $length = $this->_readIntLE(2);
+echo "\n";
+echo "*** NEW RECORD ***\n";
 echo "File position: 0x". dechex(ftell($this->data))."\n";
 echo "code:          0x". dechex($code)."\n";
 echo "length:        $length which is 0x".dechex($length)."\n";
         }
 
-        if (!isset($this->sheets[$this->sn]['numRows'])) {
-             $this->sheets[$this->sn]['numRows'] = $this->sheets[$this->sn]['maxrow'];
+        if (!isset($this->sheets[$sheet_index]['numRows'])) {
+             $this->sheets[$sheet_index]['numRows'] = $this->sheets[$sheet_index]['maxrow'];
         }
 
-        if (!isset($this->sheets[$this->sn]['numCols'])) {
-             $this->sheets[$this->sn]['numCols'] = $this->sheets[$this->sn]['maxcol'];
+        if (!isset($this->sheets[$sheet_index]['numCols'])) {
+             $this->sheets[$sheet_index]['numCols'] = $this->sheets[$sheet_index]['maxcol'];
         }
     }
 
