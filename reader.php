@@ -545,7 +545,7 @@ class Spreadsheet_Excel_Reader
      * @access private
      * @param int $size Size in bytes
      */
-    function _readIntLE($size = 2)
+    function _readInt($size = 2)
     {
         switch ($size) {
             case 1:
@@ -572,6 +572,8 @@ class Spreadsheet_Excel_Reader
 
 
     /**
+     * Read a double precision floating point value in Little Endian order
+     *
      * As described in the php manual online
      * User contributed note:
      * info at dreystone dot com
@@ -593,7 +595,8 @@ class Spreadsheet_Excel_Reader
         } else {
             list(, $a) = unpack('d', $value);
         }
-        return (double) $a;
+
+        return $a;
     }
 
     /**
@@ -603,7 +606,7 @@ class Spreadsheet_Excel_Reader
      */
     function _readString($length_size)
     {
-        $length = $this->_readIntLE($length_size);
+        $length = $this->_readInt($length_size);
         return fread($this->data, $length);
     }
 
@@ -617,7 +620,7 @@ class Spreadsheet_Excel_Reader
     {
 echo "Reading Unicode String\n";
 
-        $length = $this->_readIntLE($length_size);
+        $length = $this->_readInt($length_size);
         $options = ord(fread($this->data, 1));
 
         $ccompr   = ($options & 0x01) == 0x01;
@@ -631,12 +634,12 @@ echo "richtext: $richtext\n";
 
         if ($richtext) {
         var_dump('rich text');
-            $num_formatting_runs = $this->_readIntLE(2);
+            $num_formatting_runs = $this->_readInt(2);
         }
 
         if ($phonetic) {
         var_dump('phonetic');
-            $extended_run_length = $this->_readIntLE(4);
+            $extended_run_length = $this->_readInt(4);
         }
 
         $size = $ccompr ? $length * 2 : $length;
@@ -646,14 +649,14 @@ echo "richtext: $richtext\n";
         var_dump('rich text2');
             for ($i = 0; $i < $num_formatting_rums; $i++) {
                 //FIXME split up and parse
-                $format = $this->_readIntLE(4);
+                $format = $this->_readInt(4);
             }
         }
 
         if ($phonetic) {
         var_dump('phonetic 2');
             //FIXME split up and parse
-            $asian_settings = $this->_readIntLE($extended_run_length);
+            $asian_settings = $this->_readInt($extended_run_length);
         }
 
         return $string;
@@ -668,15 +671,17 @@ echo "richtext: $richtext\n";
     function _readResult()
     {
         $pos = ftell($this->data);
-echo "POS: ".dechex($pos)."\n";
         fseek($this->data, 6, SEEK_CUR);
-        $is_float = ($this->_readIntLE(2) !== SPREADSHEET_EXCEL_READER_RESULT_NOTFLOAT);
+        $is_float = ($this->_readInt(2) !== SPREADSHEET_EXCEL_READER_RESULT_NOTFLOAT);
         fseek($this->data, $pos);
 
         if ($is_float) {
+
             $result = $this->_readDouble();
+
         } else {
-            $type = $this->_readIntLE(1);
+
+            $type = $this->_readInt(1);
 
             switch ($type) {
                 
@@ -690,7 +695,7 @@ echo "POS: ".dechex($pos)."\n";
                 case SPREADSHEET_EXCEL_READER_RESULT_BOOL:
                 case SPREADSHEET_EXCEL_READER_RESULT_ERROR:
                     fseek($this->data, 1, SEEK_CUR);
-                    $result = $this->_readIntLE(1);
+                    $result = $this->_readInt(1);
                     fseek($this->data, 5, SEEK_CUR);
                     break;
             }
@@ -705,9 +710,7 @@ echo "POS: ".dechex($pos)."\n";
      */
     function _readFormula()
     {
-echo "POS: ".dechex(ftell($this->data))."\n";
-        $size = $this->_readIntLE(2);
-echo "formula size: $size\n";
+        $size = $this->_readInt(2);
         $formula = fread($this->data, $size);
         // todo detect additional data
     }
@@ -760,10 +763,10 @@ echo "dividing...\n";
      */
     function _readCellRangeAddress($col_size)
     {
-        $first_row_index = $this->_readIntLE(2);
-        $last_row_index  = $this->_readIntLE(2);
-        $first_col_index = $this->_readIntLE($col_size);
-        $last_col_index  = $this->_readIntLE($col_size);
+        $first_row_index = $this->_readInt(2);
+        $last_row_index  = $this->_readInt(2);
+        $first_col_index = $this->_readInt($col_size);
+        $last_col_index  = $this->_readInt($col_size);
 
         return array($first_row_index,
                      $last_row_index,
@@ -778,7 +781,7 @@ echo "dividing...\n";
     function _readCellRangeAddressList($col_size)
     {
         $an_array = array();
-        $num_cells = $this->_readIntLE(2);
+        $num_cells = $this->_readInt(2);
         for ($i = 0; $i < $num_cells; $i++) {
             $an_array[] = $this->_readCellRangeAddress($col_size);
         }
@@ -811,8 +814,8 @@ echo "dividing...\n";
         $pos = ftell($this->data);
         echo "Pos: ".$pos."\n";
 
-        $code          = $this->_readIntLE(2);
-        $length        = $this->_readIntLE(2);
+        $code          = $this->_readInt(2);
+        $length        = $this->_readInt(2);
 
         echo "Code: 0x".dechex($code)."\n";
         echo "Length: ".$length."\n";
@@ -828,8 +831,8 @@ echo "dividing...\n";
                 // Section 6.8
                 case SPREADSHEET_EXCEL_READER_TYPE_BOF:
 
-                    $this->version = $this->_readIntLE(2);
-                    $substreamType = $this->_readIntLE(2);
+                    $this->version = $this->_readInt(2);
+                    $substreamType = $this->_readInt(2);
 
                     echo "Version: 0x".dechex($this->version)."\n";
                     echo "Substream Type: 0x".dechex($substreamType)."\n";
@@ -841,16 +844,14 @@ echo "dividing...\n";
                         return false;
                     }
 
-                    if ($substreamType != SPREADSHEET_EXCEL_READER_WORKBOOKGLOBALS) {
-                        return false;
-                    }
+assert($substreamType == SPREADSHEET_EXCEL_READER_WORKBOOKGLOBALS);
 
-                    $build_id   = $this->_readIntLE(2);
-                    $build_year = $this->_readIntLE(2);
+                    $build_id   = $this->_readInt(2);
+                    $build_year = $this->_readInt(2);
 
                     if ($this->version == SPREADSHEET_EXCEL_READER_BIFF8) {
-                        $history_flags   = $this->_readIntLE(4);
-                        $loweset_version = $this->_readIntLE(4);
+                        $history_flags   = $this->_readInt(4);
+                        $loweset_version = $this->_readInt(4);
                     }
 
                     break;
@@ -862,8 +863,8 @@ echo "dividing...\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_SST:
 echo "Type_SST\n";
                     
-                    $total_strings  = $this->_readIntLE(4);
-                    $unique_strings = $this->_readIntLE(4); 
+                    $total_strings  = $this->_readInt(4);
+                    $unique_strings = $this->_readInt(4); 
 
 echo "Total strings: $total_strings\n";
 echo "Unique strings: $unique_strings\n";
@@ -877,18 +878,59 @@ var_dump($this->sst);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_FILEPASS:
-                    echo "Type_filepass\n";
-                    return;
-                    return false;
+echo "Type_filepass\n";
+                    if ($this->version == SPREADSHEET_EXCEL_READER_BIFF7) {
+
+                        $encryption_key = $this->_readInt(2);
+                        $hash_value     = $this->_readInt(2);
+
+                    } else {
+
+                        $encryption = $this->_readInt(2);
+
+                        if ($encryption == SPREADSHEET_EXCEL_READER_ENCRYPTION_WEAK) {
+
+                            $encryption_key = $this->_readInt(2);
+                            $hash_value     = $this->_readInt(2);
+
+                        } else {
+
+                            fseek($this->data, 2, SEEK_CUR);
+                            $encryption2 = $this->_readInt(2);
+
+                            if ($encryption2 == SPREADSHEET_EXCEL_READER_ENCRYPTION_STANDARD) {
+
+                                // TODO
+                                fseek($this->data, 48, SEEK_CUR);
+
+                            } else {
+
+                                // TODO
+                                fseek($this->data, 4, SEEK_CUR);
+                                $size = $this->_readInt(4);
+                                fseek($this->data, $size, SEEK_CUR);
+                                $size = $this->_readInt(4);
+                                fseek($this->data, $size * 2, SEEK_CUR);
+                                $size = $this->_readInt(4);
+                                fseek($this->data, $size, SEEK_CUR);
+                            }
+                        }
+
+                    }
+
                     break;
+
+
                 case SPREADSHEET_EXCEL_READER_TYPE_NAME:
-                    echo "Type_NAME\n";
-                    return;
+echo "Type_NAME\n";
+                    fseek($this->data, $length, SEEK_CUR);
                     break;
+
+
                 case SPREADSHEET_EXCEL_READER_TYPE_FORMAT:
 echo "Type_format\n";
 
-                    $indexCode = $this->_readIntLE(2);
+                    $indexCode = $this->_readInt(2);
 
                     if ($this->version == SPREADSHEET_EXCEL_READER_BIFF8) {
                         $formatString = $this->_readUnicodeString(2);
@@ -909,8 +951,8 @@ echo "Format string: $formatString\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_XF:
 echo 'Type_xf'."\n";
 
-                    $fontIndex   = $this->_readIntLE(2);
-                    $formatIndex = $this->_readIntLE(2);
+                    $fontIndex   = $this->_readInt(2);
+                    $formatIndex = $this->_readInt(2);
 
 echo "XF font index: $fontIndex\n";
 echo "XF format index: $formatIndex\n";
@@ -961,7 +1003,7 @@ echo "\ndate-time $formatstr \n";
                 // Section 6.25
                 case SPREADSHEET_EXCEL_READER_TYPE_DATEMODE:
 echo "Type.DATEMODE\n";
-                    $this->nineteenFour = $this->_readIntLE(2) == 1;
+                    $this->nineteenFour = $this->_readInt(2) == 1;
                     break;
 
                 // Section 6.12
@@ -969,9 +1011,9 @@ echo "Type.DATEMODE\n";
 echo "Type.BOUNDSHEET\n";
 
                     // ORDER CHANGED FROM ORIGINAL
-                    $offset     = $this->_readIntLE(4);
-                    $visibility = $this->_readIntLE(1);
-                    $type       = $this->_readIntLE(1);
+                    $offset     = $this->_readInt(4);
+                    $visibility = $this->_readInt(1);
+                    $type       = $this->_readInt(1);
 
 echo "offset:     $offset\n";
 echo "visibility: $visibility\n";
@@ -1000,8 +1042,8 @@ echo "sheet name: $rec_name\n";
             fseek($this->data, $pos + $length + 4);
             $pos = ftell($this->data);
 
-            $code          = $this->_readIntLE(2);
-            $length        = $this->_readIntLE(2);
+            $code          = $this->_readInt(2);
+            $length        = $this->_readInt(2);
 
 echo "\n";
 echo "File position:   $pos\n";
@@ -1316,8 +1358,8 @@ return;
     function _parsesheet2($sheet_index)
     {
 
-        $code   = $this->_readIntLE(2);
-        $length = $this->_readIntLE(2);
+        $code   = $this->_readInt(2);
+        $length = $this->_readInt(2);
 
 echo "code:          0x". dechex($code)."\n";
 echo "length:        $length which is 0x".dechex($length)."\n";
@@ -1341,20 +1383,19 @@ echo "length:        $length which is 0x".dechex($length)."\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_BOF:
 
                     // The version in worksheet streams cannot be trusted
-                    //$version       = $this->_readIntLE(2);
+                    //$version       = $this->_readInt(2);
                     fseek($this->data, 2, SEEK_CUR);
-                    $substreamType = $this->_readIntLE(2);
-                    $build_id      = $this->_readIntLE(2);
-                    $build_year    = $this->_readIntLE(2);
+                    $substreamType = $this->_readInt(2);
+                    $build_id      = $this->_readInt(2);
+                    $build_year    = $this->_readInt(2);
 
-echo "version:       0x". dechex($version)."\n";
 echo "substreamType: 0x". dechex($substreamType)."\n";
 echo "build id:      ".   $build_id."\n";
 echo "build year:    ".   $build_year."\n";
 
                     if ($this->version == SPREADSHEET_EXCEL_READER_BIFF8) {
-                        $file_history_flags = $this->_readIntLE(4);
-                        $lowest_version     = $this->_readIntLE(4);
+                        $file_history_flags = $this->_readInt(4);
+                        $lowest_version     = $this->_readInt(4);
 
 echo "file history flags: ".   $file_history_flags."\n";
 echo "lowest version:     ".   $lowest_version."\n";
@@ -1381,8 +1422,8 @@ echo "type index\n";
                     //TODO - store
                     fseek($this->data, 4, SEEK_CUR);
                     $int_size = $this->version == SPREADSHEET_EXCEL_READER_BIFF7 ? 2 : 4;
-                    $rf = $this->_readIntLE($int_size);
-                    $rl = $this->_readIntLE($int_size);
+                    $rf = $this->_readInt($int_size);
+                    $rl = $this->_readInt($int_size);
                     fseek($this->data, 4, SEEK_CUR);
                     // FIXME
                     // floor or ceil?
@@ -1423,36 +1464,36 @@ echo "calc settings\n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_PRINTHEADERS:
 echo "print headers\n";
-                    $print_headers = $this->_readIntLE(2);
+                    $print_headers = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_PRINTGRIDLINES:
 echo "print gridlines\n";
-                    $print_gridlines = $this->_readIntLE(2);
+                    $print_gridlines = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_GRIDSET:
 echo "gridset\n";
-                    $gridset = $this->_readIntLE(2);
+                    $gridset = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_GUTS:
 echo "guts\n";
-                    $width  = $this->_readIntLE(2);
-                    $height = $this->_readIntLE(2);
-                    $num_visible_row_outline_levels = $this->_readIntLE(2);
-                    $num_visible_col_outline_levels = $this->_readIntLE(2);
+                    $width  = $this->_readInt(2);
+                    $height = $this->_readInt(2);
+                    $num_visible_row_outline_levels = $this->_readInt(2);
+                    $num_visible_col_outline_levels = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_DEFAULTROWHEIGHT:
 echo "DEFAULTROWHEIGHT\n";
-                    $options        = $this->_readIntLE(2);
-                    $default_unused = $this->_readIntLE(2);
+                    $options        = $this->_readInt(2);
+                    $default_unused = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_WSBOOL:
 echo "wsbool\n";
-                    $wsbool = $this->_readIntLE(2);
+                    $wsbool = $this->_readInt(2);
                     break;
 
 
@@ -1464,7 +1505,7 @@ echo "wsbool\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_VERTICALPAGEBREAKS:
 echo "page breaks\n";
 
-                    $num_indexes = $this->_readIntLE(2);
+                    $num_indexes = $this->_readInt(2);
 
                     if ($this->version == SPREADSHEET_EXCEL_READER_BIFF8) {
                         fseek($this->data, $num_indexes * 6, SEEK_CUR);
@@ -1505,12 +1546,12 @@ echo "footer\n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_HCENTER:
 echo "hcenter\n";
-                    $hcenter = $this->_readIntLE(2);
+                    $hcenter = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_VCENTER:
 echo "vcenter\n";
-                    $vcenter = $this->_readIntLE(2);
+                    $vcenter = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_LEFTMARGIN:
@@ -1547,17 +1588,17 @@ echo "bottommargin\n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_SETUP:
 echo "setup\n";
-                    $paper_size                = $this->_readIntLE(2);
-                    $scaling_factor            = $this->_readIntLE(2);
-                    $start_pageno              = $this->_readIntLE(2);
-                    $width_restriction         = $this->_readIntLE(2);
-                    $height_restriction        = $this->_readIntLE(2);
-                    $options                   = $this->_readIntLE(2);
-                    $print_resolution          = $this->_readIntLE(2);
-                    $vertical_print_resolution = $this->_readIntLE(2);
+                    $paper_size                = $this->_readInt(2);
+                    $scaling_factor            = $this->_readInt(2);
+                    $start_pageno              = $this->_readInt(2);
+                    $width_restriction         = $this->_readInt(2);
+                    $height_restriction        = $this->_readInt(2);
+                    $options                   = $this->_readInt(2);
+                    $print_resolution          = $this->_readInt(2);
+                    $vertical_print_resolution = $this->_readInt(2);
                     // todo store header and footer margins
                     fseek($this->data, 16, SEEK_CUR);
-                    $num_copies_to_print       = $this->_readIntLE(2);
+                    $num_copies_to_print       = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_BITMAP:
@@ -1565,15 +1606,15 @@ echo "bitmap\n";
                     // unknown values
                     fseek($this->data, 4, SEEK_CUR);
 
-                    $size          = $this->_readIntLE(4);
+                    $size          = $this->_readInt(4);
 
                     fseek($this->data, 4, SEEK_CUR);
 
-                    $bitmap_width  = $this->_readIntLE(2);
-                    $bitmap_height = $this->_readIntLE(2);
-                    $num_planes    = $this->_readIntLE(2);
-                    $colour_depth  = $this->_readIntLE(2);
-                    $colour_depth  = $this->_readIntLE(2);
+                    $bitmap_width  = $this->_readInt(2);
+                    $bitmap_height = $this->_readInt(2);
+                    $num_planes    = $this->_readInt(2);
+                    $colour_depth  = $this->_readInt(2);
+                    $colour_depth  = $this->_readInt(2);
 
                     $line_size = floor($width * 3 / 4) + 4;
                     $bitmap    = fread($this->data, $height * $line_size); 
@@ -1592,22 +1633,22 @@ echo "bitmap\n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_PROTECT:
 echo "protect\n";
-                    $protected = $this->_readIntLE(2);
+                    $protected = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_WINDOWPROTECT:
 echo "windowprotect\n";
-                    $window_settings_protected = $this->_readIntLE(2);
+                    $window_settings_protected = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_OBJECTPROTECT:
 echo "objectprotect\n";
-                    $objects_protected = $this->_readIntLE(2);
+                    $objects_protected = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_SCENPROTECT:
 echo "scenprotect\n";
-                    $scenarios_protected = $this->_readIntLE(2);
+                    $scenarios_protected = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_PASSWORD:
@@ -1621,16 +1662,16 @@ echo "password\n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_DEFCOLWIDTH:
 echo "defcolwidth\n";
-                    $col_width = $this->_readIntLE(2);
+                    $col_width = $this->_readInt(2);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_COLINFO:
 echo "colinfo\n";
-                    $first_col  = $this->_readIntLE(2);
-                    $last_col   = $this->_readIntLE(2);
-                    $col_width  = $this->_readIntLE(2);
-                    $xf_index   = $this->_readIntLE(2);
-                    $options    = $this->_readIntLE(2);
+                    $first_col  = $this->_readInt(2);
+                    $last_col   = $this->_readInt(2);
+                    $col_width  = $this->_readInt(2);
+                    $xf_index   = $this->_readInt(2);
+                    $options    = $this->_readInt(2);
                     fseek($this->data, 2, SEEK_CUR);
                     break;
 
@@ -1639,15 +1680,15 @@ echo "colinfo\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_DIMENSIONS:
 echo "dimensions\n";
                     if ($this->version == SPREADSHEET_EXCEL_READER_BIFF7){
-                        $first_row = $this->_readIntLE(2);
-                        $last_row  = $this->_readIntLE(2);
+                        $first_row = $this->_readInt(2);
+                        $last_row  = $this->_readInt(2);
                     } else {
-                        $first_row = $this->_readIntLE(4);
-                        $last_row  = $this->_readIntLE(4);
+                        $first_row = $this->_readInt(4);
+                        $last_row  = $this->_readInt(4);
                     }
 
-                    $first_col = $this->_readIntLE(2);
-                    $last_col  = $this->_readIntLE(2);
+                    $first_col = $this->_readInt(2);
+                    $last_col  = $this->_readInt(2);
 
                     $this->sheets[$sheet_index]['numRows'] = $last_row - $first_row;
                     $this->sheets[$sheet_index]['numCols'] = $last_col - $first_col;
@@ -1658,12 +1699,12 @@ echo "dimensions\n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_ROW:
 echo "row\n";
-                    $row_index  = $this->_readIntLE(2);
-                    $first_col  = $this->_readIntLE(2);
-                    $last_col   = $this->_readIntLE(2);
-                    $row_height = $this->_readIntLE(2);
+                    $row_index  = $this->_readInt(2);
+                    $first_col  = $this->_readInt(2);
+                    $last_col   = $this->_readInt(2);
+                    $row_height = $this->_readInt(2);
                     fseek($this->data, 4, SEEK_CUR);
-                    $options    = $this->_readIntLE(4);
+                    $options    = $this->_readInt(4);
 
                     $row_block_count++;
 
@@ -1680,9 +1721,9 @@ echo "BLANK\n";
                     // TODO
                     // store information
 
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
-                    $xf_index  = $this->_readIntLE(2);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
+                    $xf_index  = $this->_readInt(2);
 
                     break;
 
@@ -1692,20 +1733,20 @@ echo "type boolerr\n";
                     // TODO
                     // Retrieve error codes as described in Section 3.7
 
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
-                    $xf_index  = $this->_readIntLE(2);
-                    $type      = $this->_readIntLE(1);
-                    $data      = $this->_readIntLE(1);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
+                    $xf_index  = $this->_readInt(2);
+                    $type      = $this->_readInt(1);
+                    $data      = $this->_readInt(1);
                     
                     $this->addcell($sheet_index, $row_index, $col_index, $data);
                     break;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_LABEL:
 echo "Type label\n";
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
-                    $xf_index  = $this->_readIntLE(2);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
+                    $xf_index  = $this->_readInt(2);
 
                     if ($this->version == SPREADSHEET_EXCEL_READER_BIFF7) {
                         $label = $this->_readString(2);
@@ -1721,10 +1762,10 @@ echo "Type label\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_LABELSST:
 echo "labelsst"."\n";
 
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
-                    $xf_index  = $this->_readIntLE(2);
-                    $sst_index = $this->_readIntLE(4);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
+                    $xf_index  = $this->_readInt(2);
+                    $sst_index = $this->_readInt(4);
 
                     $this->addcell($sheet_index, $row_index, $col_index, $this->sst[$sst_index]);
 
@@ -1738,20 +1779,20 @@ echo "MULBLANK\n";
                     // TODO
                     // Store information
 
-                    $row_index       = $this->_readIntLE(2);
-                    $first_col_index = $this->_readIntLE(2);
+                    $row_index       = $this->_readInt(2);
+                    $first_col_index = $this->_readInt(2);
                     
                     // the last col index appears after the data!
 
                     $temp_pos = ftell($this->data);
                     fseek($this->data, $length - 6, SEEK_CUR);
-                    $last_col_index  = $this->_readIntLE(2);
+                    $last_col_index  = $this->_readInt(2);
                     fseek($this->data, $temp_pos);
 
                     $xf_indexes = array();
                     $num_cols = $last_col_index - $first_col_index + 1;
                     for ($i = 0; $i < $num_cols; $i++) {
-                        $xf_indexes[] = $this->_readIntLE(2);
+                        $xf_indexes[] = $this->_readInt(2);
                     }
 
                     fseek($this->data, 2, SEEK_CUR);
@@ -1763,21 +1804,21 @@ echo "MULBLANK\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_MULRK:
 echo "type mulrk"."\n";
                     
-                    $row_index       = $this->_readIntLE(2);
-                    $first_col_index = $this->_readIntLE(2);
+                    $row_index       = $this->_readInt(2);
+                    $first_col_index = $this->_readInt(2);
                     
                     // the last col index appears after the data!
 
                     $temp_pos = ftell($this->data);
                     fseek($this->data, $length - 6, SEEK_CUR);
-                    $last_col_index  = $this->_readIntLE(2);
+                    $last_col_index  = $this->_readInt(2);
                     fseek($this->data, $temp_pos);
 
                     $num_cols = $last_col_index - $first_col_index + 1;
                     for ($i = 0; $i < $num_cols; $i++) {
 
-                        $xf_index = $this->_readIntLE(2);
-                        $value    = $this->_readIntLE(4);
+                        $xf_index = $this->_readInt(2);
+                        $value    = $this->_readInt(4);
 
                         if ($this->isDate2($xf_index)) {
                             list($string, $raw) = $this->createDate($value);
@@ -1803,9 +1844,9 @@ echo "type mulrk"."\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_NUMBER:
 echo "type number\n";
 
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
-                    $xf_index  = $this->_readIntLE(2);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
+                    $xf_index  = $this->_readInt(2);
                     $number    = $this->_readDouble();
 
                     if ($this->isDate2($xf_index)) {
@@ -1827,11 +1868,11 @@ echo "type number\n";
 
 echo 'SPREADSHEET_EXCEL_READER_TYPE_RK'."\n";
 
-                    $row_index = $this->_readIntLE(2);        
-                    $col_index = $this->_readIntLE(2);        
-                    $xf_index  = $this->_readIntLE(2);        
+                    $row_index = $this->_readInt(2);        
+                    $col_index = $this->_readInt(2);        
+                    $xf_index  = $this->_readInt(2);        
 
-                    $rk_value  = $this->_readIntLE(4);
+                    $rk_value  = $this->_readInt(4);
                     $number    = $this->_convertRKValue($rk_value);
 echo "RK number: $number\n";
 
@@ -1861,14 +1902,14 @@ echo "date: $string \n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_RSTRING:
 
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
-                    $xf_index  = $this->_readIntLE(2);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
+                    $xf_index  = $this->_readInt(2);
                     $string    = $this->_readString(2);
-                    $num_runs  = $this->_readIntLE(1);
+                    $num_runs  = $this->_readInt(1);
 
                     for ($i = 0; $i < $num_runs; $i++) {
-                        $run_list  = $this->_readIntLE(2);
+                        $run_list  = $this->_readInt(2);
                     }
 
                     break;
@@ -1877,12 +1918,12 @@ echo "date: $string \n";
                 case SPREADSHEET_EXCEL_READER_TYPE_FORMULA:
 echo "type formula\n";
 
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
-                    $xf_index  = $this->_readIntLE(2);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
+                    $xf_index  = $this->_readInt(2);
                     // todo result may be stored in 1 of 5 ways
                     $result    = $this->_readResult();
-                    $options   = $this->_readIntLE(2);
+                    $options   = $this->_readInt(2);
                     fseek($this->data, 4, SEEK_CUR);
                     // todo read the formula data
                     $formula   = $this->_readFormula();
@@ -1947,22 +1988,22 @@ echo 'type dbcell'."\n";
 
                 case SPREADSHEET_EXCEL_READER_TYPE_WINDOW2:
 echo "type window2\n";
-                    $options   = $this->_readIntLE(2);
-                    $row_index = $this->_readIntLE(2);
-                    $col_index = $this->_readIntLE(2);
+                    $options   = $this->_readInt(2);
+                    $row_index = $this->_readInt(2);
+                    $col_index = $this->_readInt(2);
 
                     if ($this->version == SPREADSHEET_EXCEL_READER_BIFF7) {
 
-                        $gridline_colour = $this->_readIntLE(4);
+                        $gridline_colour = $this->_readInt(4);
 
                     } else {
 
-                        $gridline_colour_index    = $this->_readIntLE(2);
+                        $gridline_colour_index    = $this->_readInt(2);
 
                         fseek($this->data, 2, SEEK_CUR);
 
-                        $page_break_magnification = $this->_readIntLE(2);
-                        $normal_magnification     = $this->_readIntLE(2);
+                        $page_break_magnification = $this->_readInt(2);
+                        $normal_magnification     = $this->_readInt(2);
 
                         fseek($this->data, 4, SEEK_CUR);
                     }
@@ -1987,10 +2028,10 @@ echo "type pane\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_SELECTION:
 echo "type selection\n";
                     // todo store
-                    $pane_id          = $this->_readIntLE(1);
-                    $row_index        = $this->_readIntLE(2);
-                    $col_index        = $this->_readIntLE(2);
-                    $cell_range_index = $this->_readIntLE(2);
+                    $pane_id          = $this->_readInt(1);
+                    $row_index        = $this->_readInt(2);
+                    $col_index        = $this->_readInt(2);
+                    $cell_range_index = $this->_readInt(2);
                     $selected_cells   = $this->_readCellRangeAddressList(1);
                     break;
 
@@ -1998,8 +2039,8 @@ echo "type selection\n";
                 case SPREADSHEET_EXCEL_READER_TYPE_PHONETIC:
 echo "type phonetic\n";
                     // todo store
-                    $font_index     = $this->_readIntLE(2);
-                    $settings       = $this->_readIntLE(2);
+                    $font_index     = $this->_readInt(2);
+                    $settings       = $this->_readInt(2);
                     $phonetic_cells = $this->_readCellRangeAddressList(2);
                     break;
 
@@ -2027,7 +2068,7 @@ exit;
 
                 case SPREADSHEET_EXCEL_READER_TYPE_CALCMODE:
 
-                    $this->calcmode = $this->_readIntLE(2);
+                    $this->calcmode = $this->_readInt(2);
 echo "Calcmode: ".dechex($this->calcmode)."\n";
 return;
 
@@ -2044,8 +2085,8 @@ return;
                     break;
             }
 
-            $code   = $this->_readIntLE(2);
-            $length = $this->_readIntLE(2);
+            $code   = $this->_readInt(2);
+            $length = $this->_readInt(2);
 echo "\n";
 echo "*** NEW RECORD ***\n";
 echo "File position: 0x". dechex(ftell($this->data))."\n";
