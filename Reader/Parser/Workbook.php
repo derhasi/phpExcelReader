@@ -195,6 +195,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                         $workbook->xf_records[] = array(
                             'type' => 'date',
+                            'format_index' => $format_index,
                             'format' => $this->_date_formats[$format_index]
                             );
 
@@ -202,6 +203,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                         $workbook->xf_records[] = array(
                             'type' => 'number',
+                            'format_index' => $format_index,
                             'format' => $this->_number_formats[$format_index]
                             );
 
@@ -225,12 +227,14 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                         if ($isdate){
                             $workbook->xf_records[] = array(
                                 'type' => 'date',
+                                'format_index' => $format_index,
                                 'format' => $formatstr,
                                 );
                         } else {
                             $workbook->xf_records[] = array(
                                 'type' => 'other',
                                 'format' => '',
+                                'format_index' => $format_index,
                                 'code' => $format_index
                                 );
                         }

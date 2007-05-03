@@ -7,6 +7,12 @@ class Excel_Workbook
      * Either 8 (BIFF8) or 7 (BIFF7)
      */
     public $version = 8;
+
+    /**
+     * List of worksheets that form part of this workbook
+     * 
+     * @access public
+     */
     public $worksheets = array();
 
     /**
@@ -26,6 +32,8 @@ class Excel_Workbook
 
     /**
      * Holds the format records as defined in Section 6.45
+     * 
+     * The defaults here are built in and are not written (except for the money ones)
      * 
      * TODO: store default records.
      * 
@@ -104,6 +112,10 @@ class Excel_Workbook
         }
 
         return new Spreadsheet_Excel_Reader_Exception('Unknown worksheet');
+    }
+
+    public function toArray()
+    {
     }
 }
 

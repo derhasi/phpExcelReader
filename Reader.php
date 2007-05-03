@@ -2,10 +2,11 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
- * A class for reading Microsoft Excel Spreadsheets.
+ * A package for reading Microsoft Excel Spreadsheets.
  *
  * Based on PHPExcelReader by Vadim Tkachenko.
  * (http://sourceforge.net/projects/phpexcelreader)
+ *
  * Reads only Biff 7 and Biff 8 formats.
  *
  * PHP version 5
@@ -21,11 +22,7 @@
  */
 
 require_once 'PEAR/Exception.php';
-class Spreadsheet_Excel_Reader_Exception extends PEAR_Exception{}
-
 require_once 'OLE.php';
-
-
 
 // stuff from schmitty
 define('NUM_BIG_BLOCK_DEPOT_BLOCKS_POS', 0x2c);
@@ -40,11 +37,19 @@ define('BIG_BLOCK_DEPOT_BLOCKS_POS', 0x4c);
 define('SMALL_BLOCK_THRESHOLD', 0x1000);
 
 
-/*
-* Place includes, constant defines and $_GLOBAL settings here.
-* Make sure they have appropriate docblocks to avoid phpDocumentor
-* construing they are documented by the page-level docblock.
-*/
+/**
+ * Exception class
+ *
+ * @category   Spreadsheet
+ * @package    Spreadsheet_Excel_Reader
+ * @author     David Sanders <shangxiao@php.net>
+ * @license    todo
+ * @version    Release: @package_version@
+ * @see        PEAR_Exception
+ */
+
+class Spreadsheet_Excel_Reader_Exception extends PEAR_Exception{}
+
 
 /**
  * A class for reading Microsoft Excel Spreadsheets.
@@ -56,9 +61,10 @@ define('SMALL_BLOCK_THRESHOLD', 0x1000);
  *
  * @category   Spreadsheet
  * @package    Spreadsheet_Excel_Reader
- * @author     Vadim Tkachenko <vt@phpapache.com>
- * @copyright  1997-2005 The PHP Group
- * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @author     Vadim Tkachenko <vt@apachephp.com>
+ * @author     David Sanders <shangxiao@php.net>
+ * @copyright  TODO
+ * @license    TODO
  * @version    Release: @package_version@
  * @link       http://pear.php.net/package/PackageName
  * @see        OLE, Spreadsheet_Excel_Writer
@@ -207,9 +213,9 @@ class Spreadsheet_Excel_Reader
     const TYPE_PHONETIC              = 0xef;
 
 
-    const UTCOFFSETDAYS    = 25569;
-    const UTCOFFSETDAYS1904   = 24107;
-    const MSINADAY            = 86400;
+    const UTCOFFSETDAYS              = 25569;
+    const UTCOFFSETDAYS1904          = 24107;
+    const SECONDSINADAY              = 86400;
 //MSINADAY   24 * 60 * 60;
 
 //DEF_NUM_FORMAT   "%.2f";
@@ -220,15 +226,13 @@ class Spreadsheet_Excel_Reader
 
 
 
-    var $version;
-
     /**
      * Array of worksheets found
      *
      * @var array
-     * @access public
+     * @access private
      */
-    var $boundsheets = array();
+    private $boundsheets = array();
 
     /**
      * Array of format records found
@@ -373,8 +377,6 @@ class Spreadsheet_Excel_Reader
 
 
 
-    var $calcmode;
-
     // }}}
     // {{{ Spreadsheet_Excel_Reader()
 
@@ -483,7 +485,7 @@ class Spreadsheet_Excel_Reader
      *
      * @access public
      * @param filename
-     * @todo return a valid value
+     * @return Excel_Workbook
      */
     function read($sFileName)
     {
@@ -492,15 +494,14 @@ class Spreadsheet_Excel_Reader
 
         foreach ($ole->_list as $pps) {
             if (//$pps->Size >= SMALL_BLOCK_THRESHOLD &&
-                ($pps->Name == 'Workbook' || $pps->Name == 'Book')) {
-                $this->data = $ole->getStream($pps);
-                break;
+                ($pps->Name == Spreadsheet_Excel_Reader::STREAM_NAME_BIFF7 || $pps->Name == Spreadsheet_Excel_Reader::STREAM_NAME_BIFF8)) {
+
+                require_once 'Spreadsheet/Excel/Reader/Parser/Workbook.php';
+                $parser = new Spreadsheet_Excel_Reader_Parser_Workbook($ole->getStream($pps));
+                return $parser->parse();
             }
         }
 
-        require_once 'Spreadsheet/Excel/Reader/Parser/Workbook.php';
-        $parser = new Spreadsheet_Excel_Reader_Parser_Workbook($this->data);
-        return $parser->parse();
 
 
 /*

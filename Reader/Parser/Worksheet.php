@@ -81,7 +81,8 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
         $code   = $this->_readInt(2);
         $length = $this->_readInt(2);
 
-        assert($code == Spreadsheet_Excel_Reader::TYPE_BOF);
+// TODO change me
+assert($code == Spreadsheet_Excel_Reader::TYPE_BOF);
 
         $row_block_count = 0;
 
@@ -101,7 +102,8 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
                     $build_id       = $this->_readInt(2);
                     $build_year     = $this->_readInt(2);
 
-                    assert($substream_type == Spreadsheet_Excel_Reader::WORKSHEET);
+// TODO change me
+assert($substream_type == Spreadsheet_Excel_Reader::WORKSHEET);
 
                     if ($this->workbook->version == 8) {
                         $file_history_flags = $this->_readInt(4);
@@ -225,6 +227,7 @@ echo "dimensions\n";
 
                     break;
 
+
                 case Spreadsheet_Excel_Reader::TYPE_ROW:
 echo "row\n";
                     $row_index  = $this->_readInt(2);
@@ -246,13 +249,11 @@ echo "row\n";
 
                 case Spreadsheet_Excel_Reader::TYPE_BLANK:
 echo "BLANK\n";
-                    // TODO
-                    // store information
-
                     $row_index = $this->_readInt(2);
                     $col_index = $this->_readInt(2);
                     $xf_index  = $this->_readInt(2);
 
+                    $worksheet->addCell($row_index, $col_index, $xf_index, null);
                     break;
 
 
@@ -288,6 +289,7 @@ echo "Type label\n";
 
                     break;
 
+
                 // Section 6.61
                 case Spreadsheet_Excel_Reader::TYPE_LABELSST:
 echo "labelsst"."\n";
@@ -303,36 +305,30 @@ echo "labelsst"."\n";
 
 
                 // Section 6.64
-                // Multiple blank
+                // Multiple blank - all cells in same row
                 case Spreadsheet_Excel_Reader::TYPE_MULBLANK:
 echo "MULBLANK\n";
-
-                    // TODO
-                    // Store information
-
                     $row_index       = $this->_readInt(2);
                     $first_col_index = $this->_readInt(2);
                     
                     // the last col index appears after the data!
-
                     $temp_pos = ftell($this->_stream);
                     fseek($this->_stream, $length - 6, SEEK_CUR);
                     $last_col_index  = $this->_readInt(2);
                     fseek($this->_stream, $temp_pos);
 
-                    $xf_indexes = array();
                     $num_cols = $last_col_index - $first_col_index + 1;
                     for ($i = 0; $i < $num_cols; $i++) {
-                        $xf_indexes[] = $this->_readInt(2);
+                        $xf_index = $this->_readInt(2);
+                        $worksheet->addCell($row_index, $first_col_index + $i, $xf_index, null);
                     }
 
                     fseek($this->_stream, 2, SEEK_CUR);
-
                     break;
 
 
                 // Section 6.64
-                // Multiple RK
+                // Multiple RK - all cells in same row
                 case Spreadsheet_Excel_Reader::TYPE_MULRK:
 echo "type mulrk"."\n";
                     
@@ -340,7 +336,6 @@ echo "type mulrk"."\n";
                     $first_col_index = $this->_readInt(2);
                     
                     // the last col index appears after the data!
-
                     $temp_pos = ftell($this->_stream);
                     fseek($this->_stream, $length - 6, SEEK_CUR);
                     $last_col_index  = $this->_readInt(2);
@@ -572,6 +567,7 @@ echo "type phonetic\n";
 
                 case Spreadsheet_Excel_Reader::TYPE_MERGEDCELLS:
 echo 'type merged cell'."\n";
+                    // TODO
 exit;
                     $cellRanges = ord($this->_stream[$spos]) | ord($this->_stream[$spos+1])<<8;
                     for ($i = 0; $i < $cellRanges; $i++) {

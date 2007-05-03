@@ -1,6 +1,7 @@
 <?php
 
 require_once 'Spreadsheet/Excel/Reader/Workbook.php';
+require_once 'Spreadsheet/Excel/Reader/Cell.php';
 
 class Excel_Worksheet
 {
@@ -32,6 +33,8 @@ class Excel_Worksheet
 
     public function addCell($row, $col, $xf, $value, $type = 'Unknown', $raw = null)
     {
+        $cell = new Excel_Cell($this, $row, $col, $xf, $value);
+
         if (is_null($type)) {
             $raw = $value;
         }
@@ -40,6 +43,10 @@ class Excel_Worksheet
         $this->cells[$row][$col]['type']  = $value;
         $this->cells[$row][$col]['raw']   = $raw;
         $this->cells[$raw][$col]['xf']    = $xf;
+    }
+
+    public function toArray()
+    {
     }
 }
 
