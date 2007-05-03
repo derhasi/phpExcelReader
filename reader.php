@@ -4,31 +4,25 @@
 /**
  * A class for reading Microsoft Excel Spreadsheets.
  *
- * Originally developed by Vadim Tkachenko under the name PHPExcelReader.
+ * Based on PHPExcelReader by Vadim Tkachenko.
  * (http://sourceforge.net/projects/phpexcelreader)
- * Based on the Java version by Andy Khan (http://www.andykhan.com).  Now
- * maintained by David Sanders.  Reads only Biff 7 and Biff 8 formats.
+ * Reads only Biff 7 and Biff 8 formats.
  *
- * PHP versions 4 and 5
- *
- * LICENSE: This source file is subject to version 3.0 of the PHP license
- * that is available through the world-wide-web at the following URI:
- * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
- * the PHP License and are unable to obtain it through the web, please
- * send a note to license@php.net so we can mail you a copy immediately.
+ * PHP version 5
  *
  * @category   Spreadsheet
  * @package    Spreadsheet_Excel_Reader
  * @author     Vadim Tkachenko <vt@apachephp.com>
- * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @author     David Sanders <shangxiao@php.net>
+ * @license    TODO
  * @version    CVS: $Id: reader.php 19 2007-03-13 12:42:41Z shangxiao $
  * @link       http://pear.php.net/package/Spreadsheet_Excel_Reader
- * @see        OLE, Spreadsheet_Excel_Writer
+ * @see        OLE
  */
 
+require_once 'PEAR/Exception.php';
+class Spreadsheet_Excel_Reader_Exception extends PEAR_Exception{}
 
-//require_once 'PEAR.php';
-//require_once 'Spreadsheet/Excel/Reader/OLERead.php';
 require_once 'OLE.php';
 
 define('SPREADSHEET_EXCEL_READER_BIFF8',             0x600);
@@ -45,7 +39,6 @@ define('SPREADSHEET_EXCEL_READER_TYPE_BOUNDSHEET',   0x85);         // 6.12
 define('SPREADSHEET_EXCEL_READER_TYPE_DIMENSIONS',   0x200);
 define('SPREADSHEET_EXCEL_READER_TYPE_ROW',          0x208);
 define('SPREADSHEET_EXCEL_READER_TYPE_DBCELL',       0xd7);
-define('SPREADSHEET_EXCEL_READER_TYPE_FILEPASS',     0x2f);
 define('SPREADSHEET_EXCEL_READER_TYPE_NOTE',         0x1c);
 define('SPREADSHEET_EXCEL_READER_TYPE_TXO',          0x1b6);
 define('SPREADSHEET_EXCEL_READER_TYPE_INDEX',        0x20b);
@@ -61,6 +54,34 @@ define('SPREADSHEET_EXCEL_READER_TYPE_NINETEENFOUR', 0x22);         // 6.25
 define('SPREADSHEET_EXCEL_READER_TYPE_MERGEDCELLS',  0xE5);
 
 define('SPREADSHEET_EXCEL_READER_TYPE_UNCALCED',     0x5e);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_CODEPAGE',     0x42);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_DSF',          0x161);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_WINDOW1',      0x3d);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_BACKUP',       0x40);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_HIDEOBJ',      0x8d);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_FONT',         0x31);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_BOOKBOOL',     0xda);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_STYLE',        0x293);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_PALETTE',      0x92);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_USESELFS',     0x160);
+
+define('SPREADSHEET_EXCEL_READER_TYPE_COUNTRY',      0x8c);
+
+
+// file protection
+define('SPREADSHEET_EXCEL_READER_TYPE_FILEPASS',     0x2f);
+define('SPREADSHEET_EXCEL_READER_TYPE_WRITEACCESS',  0x5c);
+
 
 // calculation settings
 define('SPREADSHEET_EXCEL_READER_TYPE_CALCCOUNT',    0xc);
@@ -473,6 +494,11 @@ class Spreadsheet_Excel_Reader
             }
         }
 
+        require_once 'Spreadsheet/Excel/Reader/Parser/Workbook.php';
+        $parser = new Spreadsheet_Excel_Reader_Parser_Workbook($this->data);
+        return $parser->parse();
+
+
 /*
         foreach ($ole->_list as $i => $pps) {
             if (($pps->Name == 'Workbook' || $pps->Name == 'Book') &&
@@ -486,9 +512,9 @@ class Spreadsheet_Excel_Reader
         }
 //exit;
 */
-        $this->_parse2();
+     //   $this->_parse2();
 
-        return sizeof($this->sheets) > 0;
+       // return sizeof($this->sheets) > 0;
 
 /*
         $res = $this->_ole->read($sFileName);
