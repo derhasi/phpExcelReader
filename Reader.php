@@ -25,157 +25,6 @@ class Spreadsheet_Excel_Reader_Exception extends PEAR_Exception{}
 
 require_once 'OLE.php';
 
-define('SPREADSHEET_EXCEL_READER_BIFF8',             0x600);
-define('SPREADSHEET_EXCEL_READER_BIFF7',             0x500);
-define('SPREADSHEET_EXCEL_READER_WORKBOOKGLOBALS',   0x5);
-define('SPREADSHEET_EXCEL_READER_WORKSHEET',         0x10);
-
-define('SPREADSHEET_EXCEL_READER_STREAM_NAME_BIFF7', 'Book');
-define('SPREADSHEET_EXCEL_READER_STREAM_NAME_BIFF8', 'Workbook');
-
-define('SPREADSHEET_EXCEL_READER_TYPE_BOF',          0x809);
-define('SPREADSHEET_EXCEL_READER_TYPE_EOF',          0xa);
-define('SPREADSHEET_EXCEL_READER_TYPE_BOUNDSHEET',   0x85);         // 6.12
-define('SPREADSHEET_EXCEL_READER_TYPE_DIMENSIONS',   0x200);
-define('SPREADSHEET_EXCEL_READER_TYPE_ROW',          0x208);
-define('SPREADSHEET_EXCEL_READER_TYPE_DBCELL',       0xd7);
-define('SPREADSHEET_EXCEL_READER_TYPE_NOTE',         0x1c);
-define('SPREADSHEET_EXCEL_READER_TYPE_TXO',          0x1b6);
-define('SPREADSHEET_EXCEL_READER_TYPE_INDEX',        0x20b);
-define('SPREADSHEET_EXCEL_READER_TYPE_SST',          0xfc);         // 6.96
-define('SPREADSHEET_EXCEL_READER_TYPE_EXTSST',       0xff);         // 6.40
-define('SPREADSHEET_EXCEL_READER_TYPE_CONTINUE',     0x3c);
-define('SPREADSHEET_EXCEL_READER_TYPE_NAME',         0x18);
-define('SPREADSHEET_EXCEL_READER_TYPE_STRING',       0x207);
-define('SPREADSHEET_EXCEL_READER_TYPE_FORMAT',       0x41e);        // 6.45
-define('SPREADSHEET_EXCEL_READER_TYPE_XF',           0xe0);         // 6.115
-define('SPREADSHEET_EXCEL_READER_TYPE_UNKNOWN',      0xffff);
-define('SPREADSHEET_EXCEL_READER_TYPE_NINETEENFOUR', 0x22);         // 6.25
-define('SPREADSHEET_EXCEL_READER_TYPE_MERGEDCELLS',  0xE5);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_UNCALCED',     0x5e);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_CODEPAGE',     0x42);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_DSF',          0x161);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_WINDOW1',      0x3d);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_BACKUP',       0x40);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_HIDEOBJ',      0x8d);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_FONT',         0x31);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_BOOKBOOL',     0xda);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_STYLE',        0x293);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_PALETTE',      0x92);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_USESELFS',     0x160);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_COUNTRY',      0x8c);
-
-
-// file protection
-define('SPREADSHEET_EXCEL_READER_TYPE_FILEPASS',     0x2f);
-define('SPREADSHEET_EXCEL_READER_TYPE_WRITEACCESS',  0x5c);
-
-
-// calculation settings
-define('SPREADSHEET_EXCEL_READER_TYPE_CALCCOUNT',    0xc);
-define('SPREADSHEET_EXCEL_READER_TYPE_CALCMODE',     0xd);
-define('SPREADSHEET_EXCEL_READER_TYPE_PRECISION',    0xe);
-define('SPREADSHEET_EXCEL_READER_TYPE_REFMODE',      0xf);
-define('SPREADSHEET_EXCEL_READER_TYPE_DELTA',        0x10);
-define('SPREADSHEET_EXCEL_READER_TYPE_ITERATION',    0x11);
-define('SPREADSHEET_EXCEL_READER_TYPE_DATEMODE',     0x22);
-define('SPREADSHEET_EXCEL_READER_TYPE_SAVERECALC',   0x5F);
-
-define('SPREADSHEET_EXCEL_READER_TYPE_PRINTHEADERS',     0x2a);
-define('SPREADSHEET_EXCEL_READER_TYPE_PRINTGRIDLINES',   0x2b);
-define('SPREADSHEET_EXCEL_READER_TYPE_GRIDSET',          0x82);
-define('SPREADSHEET_EXCEL_READER_TYPE_GUTS',             0x80);
-define('SPREADSHEET_EXCEL_READER_TYPE_DEFAULTROWHEIGHT', 0x225);
-define('SPREADSHEET_EXCEL_READER_TYPE_WSBOOL',           0x81);
-
-// page settings
-define('SPREADSHEET_EXCEL_READER_TYPE_HORIZONTALPAGEBREAKS', 0x1b);
-define('SPREADSHEET_EXCEL_READER_TYPE_VERTICALPAGEBREAKS',   0x1a);
-define('SPREADSHEET_EXCEL_READER_TYPE_HEADER',               0x14);
-define('SPREADSHEET_EXCEL_READER_TYPE_FOOTER',               0x15);
-define('SPREADSHEET_EXCEL_READER_TYPE_HCENTER',              0x83);
-define('SPREADSHEET_EXCEL_READER_TYPE_VCENTER',              0x84);
-define('SPREADSHEET_EXCEL_READER_TYPE_LEFTMARGIN',           0x26);
-define('SPREADSHEET_EXCEL_READER_TYPE_RIGHTMARGIN',          0x27);
-define('SPREADSHEET_EXCEL_READER_TYPE_TOPMARGIN',            0x28);
-define('SPREADSHEET_EXCEL_READER_TYPE_BOTTOMMARGIN',         0x29);
-//PLS UNDOCUMENTED
-define('SPREADSHEET_EXCEL_READER_TYPE_SETUP',                0xa1);
-define('SPREADSHEET_EXCEL_READER_TYPE_BITMAP',               0xe9);
-
-// worksheet protection block
-define('SPREADSHEET_EXCEL_READER_TYPE_PROTECT',              0x12);
-define('SPREADSHEET_EXCEL_READER_TYPE_WINDOWPROTECT',        0x19);
-define('SPREADSHEET_EXCEL_READER_TYPE_OBJECTPROTECT',        0x63);
-define('SPREADSHEET_EXCEL_READER_TYPE_SCENPROTECT',          0xdd);
-define('SPREADSHEET_EXCEL_READER_TYPE_PASSWORD',             0x13);
-
-
-define('SPREADSHEET_EXCEL_READER_TYPE_DEFCOLWIDTH',          0x55);
-define('SPREADSHEET_EXCEL_READER_TYPE_COLINFO',              0x7d);
-
-
-// cell block
-
-define('SPREADSHEET_EXCEL_READER_TYPE_BLANK',               0x201);
-define('SPREADSHEET_EXCEL_READER_TYPE_BOOLERR',             0x205);
-define('SPREADSHEET_EXCEL_READER_TYPE_LABEL',               0x204);
-define('SPREADSHEET_EXCEL_READER_TYPE_LABELSST',            0xfd);         // 6.61
-define('SPREADSHEET_EXCEL_READER_TYPE_MULBLANK',            0xbe);
-define('SPREADSHEET_EXCEL_READER_TYPE_MULRK',               0xbd);
-define('SPREADSHEET_EXCEL_READER_TYPE_NUMBER',              0x203);
-define('SPREADSHEET_EXCEL_READER_TYPE_RK',                  0x27e);
-define('SPREADSHEET_EXCEL_READER_TYPE_RSTRING',             0xd6);
-
-
-// formula cell block
-
-define('SPREADSHEET_EXCEL_READER_TYPE_FORMULA',             0x6);
-define('SPREADSHEET_EXCEL_READER_TYPE_ARRAY',               0x221);
-define('SPREADSHEET_EXCEL_READER_TYPE_SHRFMLA',             0x4bc);
-define('SPREADSHEET_EXCEL_READER_TYPE_TABLEOP',             0x236);
-
-define('SPREADSHEET_EXCEL_READER_RESULT_NOTFLOAT',          0xffff);
-
-define('SPREADSHEET_EXCEL_READER_RESULT_STRING',            0x00);
-define('SPREADSHEET_EXCEL_READER_RESULT_BOOL',              0x01);
-define('SPREADSHEET_EXCEL_READER_RESULT_ERROR',             0x02);
-define('SPREADSHEET_EXCEL_READER_RESULT_EMPTY',             0x03);
-
-
-// worksheet view settings blick
-
-define('SPREADSHEET_EXCEL_READER_TYPE_WINDOW2',             0x23e);
-define('SPREADSHEET_EXCEL_READER_TYPE_SCL',                 0xa0);
-define('SPREADSHEET_EXCEL_READER_TYPE_PANE',                0x41);
-define('SPREADSHEET_EXCEL_READER_TYPE_SELECTION',           0x1d);
-
-
-define('SPREADSHEET_EXCEL_READER_TYPE_PHONETIC',            0xef);
-
-
-define('SPREADSHEET_EXCEL_READER_UTCOFFSETDAYS' ,    25569);
-define('SPREADSHEET_EXCEL_READER_UTCOFFSETDAYS1904', 24107);
-define('SPREADSHEET_EXCEL_READER_MSINADAY',          86400);
-//define('SPREADSHEET_EXCEL_READER_MSINADAY', 24 * 60 * 60);
-
-//define('SPREADSHEET_EXCEL_READER_DEF_NUM_FORMAT', "%.2f");
-define('SPREADSHEET_EXCEL_READER_DEF_NUM_FORMAT',    "%s");
-
-
-define('SPREADSHEET_EXCEL_READER_EXPONENT_BIAS', 1023);
 
 
 // stuff from schmitty
@@ -216,6 +65,161 @@ define('SMALL_BLOCK_THRESHOLD', 0x1000);
  */
 class Spreadsheet_Excel_Reader
 {
+
+    const BIFF8               = 0x600;
+    const BIFF7               = 0x500;
+    const WORKBOOKGLOBALS     = 0x5;
+    const WORKSHEET           = 0x10;
+
+    const STREAM_NAME_BIFF7   = 'Book';
+    const STREAM_NAME_BIFF8   = 'Workbook';
+
+    const TYPE_BOF            = 0x809;
+    const TYPE_EOF            = 0xa;
+    const TYPE_BOUNDSHEET     = 0x85;         // 6.12
+    const TYPE_DIMENSIONS     = 0x200;
+    const TYPE_ROW            = 0x208;
+    const TYPE_DBCELL         = 0xd7;
+    const TYPE_NOTE           = 0x1c;
+    const TYPE_TXO            = 0x1b6;
+    const TYPE_INDEX          = 0x20b;
+    const TYPE_SST            = 0xfc;         // 6.96
+    const TYPE_EXTSST         = 0xff;         // 6.40
+    const TYPE_CONTINUE       = 0x3c;
+    const TYPE_NAME           = 0x18;
+    const TYPE_STRING         = 0x207;
+    const TYPE_FORMAT         = 0x41e;        // 6.45
+    const TYPE_XF             = 0xe0;         // 6.115
+    const TYPE_UNKNOWN        = 0xffff;
+    const TYPE_NINETEENFOUR   = 0x22;         // 6.25
+    const TYPE_MERGEDCELLS    = 0xE5;
+
+    const TYPE_UNCALCED       = 0x5e;
+
+    const TYPE_CODEPAGE       = 0x42;
+
+    const TYPE_DSF            = 0x161;
+
+    const TYPE_WINDOW1        = 0x3d;
+
+    const TYPE_BACKUP         = 0x40;
+
+    const TYPE_HIDEOBJ        = 0x8d;
+
+    const TYPE_FONT           = 0x31;
+
+    const TYPE_BOOKBOOL       = 0xda;
+
+    const TYPE_STYLE          = 0x293;
+
+    const TYPE_PALETTE        = 0x92;
+
+    const TYPE_USESELFS       = 0x160;
+
+    const TYPE_COUNTRY        = 0x8c;
+
+
+// file protection
+    const TYPE_FILEPASS       = 0x2f;
+    const TYPE_WRITEACCESS    = 0x5c;
+
+
+// calculation settings
+    const TYPE_CALCCOUNT      = 0xc;
+    const TYPE_CALCMODE       = 0xd;
+    const TYPE_PRECISION      = 0xe;
+    const TYPE_REFMODE        = 0xf;
+    const TYPE_DELTA          = 0x10;
+    const TYPE_ITERATION      = 0x11;
+    const TYPE_DATEMODE       = 0x22;
+    const TYPE_SAVERECALC     = 0x5F;
+
+    const TYPE_PRINTHEADERS       = 0x2a;
+    const TYPE_PRINTGRIDLINES     = 0x2b;
+    const TYPE_GRIDSET            = 0x82;
+    const TYPE_GUTS               = 0x80;
+    const TYPE_DEFAULTROWHEIGHT   = 0x225;
+    const TYPE_WSBOOL             = 0x81;
+
+// page settings
+    const TYPE_HORIZONTALPAGEBREAKS   = 0x1b;
+    const TYPE_VERTICALPAGEBREAKS     = 0x1a;
+    const TYPE_HEADER                 = 0x14;
+    const TYPE_FOOTER                 = 0x15;
+    const TYPE_HCENTER                = 0x83;
+    const TYPE_VCENTER                = 0x84;
+    const TYPE_LEFTMARGIN             = 0x26;
+    const TYPE_RIGHTMARGIN            = 0x27;
+    const TYPE_TOPMARGIN              = 0x28;
+    const TYPE_BOTTOMMARGIN           = 0x29;
+//PLS UNDOCUMENTED
+    const TYPE_SETUP                  = 0xa1;
+    const TYPE_BITMAP                 = 0xe9;
+
+// worksheet protection block
+    const TYPE_PROTECT                = 0x12;
+    const TYPE_WINDOWPROTECT          = 0x19;
+    const TYPE_OBJECTPROTECT          = 0x63;
+    const TYPE_SCENPROTECT            = 0xdd;
+    const TYPE_PASSWORD               = 0x13;
+
+
+    const TYPE_DEFCOLWIDTH            = 0x55;
+    const TYPE_COLINFO                = 0x7d;
+
+
+// cell block
+
+    const TYPE_BLANK                 = 0x201;
+    const TYPE_BOOLERR               = 0x205;
+    const TYPE_LABEL                 = 0x204;
+    const TYPE_LABELSST              = 0xfd;         // 6.61
+    const TYPE_MULBLANK              = 0xbe;
+    const TYPE_MULRK                 = 0xbd;
+    const TYPE_NUMBER                = 0x203;
+    const TYPE_RK                    = 0x27e;
+    const TYPE_RSTRING               = 0xd6;
+
+
+// formula cell block
+
+    const TYPE_FORMULA               = 0x6;
+    const TYPE_ARRAY                 = 0x221;
+    const TYPE_SHRFMLA               = 0x4bc;
+    const TYPE_TABLEOP               = 0x236;
+
+    const RESULT_NOTFLOAT            = 0xffff;
+
+    const RESULT_STRING              = 0x00;
+    const RESULT_BOOL                = 0x01;
+    const RESULT_ERROR               = 0x02;
+    const RESULT_EMPTY               = 0x03;
+
+
+// worksheet view settings blick
+
+    const TYPE_WINDOW2               = 0x23e;
+    const TYPE_SCL                   = 0xa0;
+    const TYPE_PANE                  = 0x41;
+    const TYPE_SELECTION             = 0x1d;
+
+
+    const TYPE_PHONETIC              = 0xef;
+
+
+    const UTCOFFSETDAYS    = 25569;
+    const UTCOFFSETDAYS1904   = 24107;
+    const MSINADAY            = 86400;
+//MSINADAY   24 * 60 * 60;
+
+//DEF_NUM_FORMAT   "%.2f";
+    const DEF_NUM_FORMAT     = "%s";
+
+
+    const EXPONENT_BIAS   = 1023;
+
+
+
     var $version;
 
     /**

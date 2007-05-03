@@ -31,7 +31,7 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
                     $this->multiplier = 100;
                 }
             }else{
-                $this->curformat = SPREADSHEET_EXCEL_READER_DEF_NUM_FORMAT;
+                $this->curformat = Spreadsheet_Excel_Reader::DEF_NUM_FORMAT;
                 $this->rectype = 'unknown';
             }
             return false;
@@ -51,15 +51,15 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
     function createDate($numValue)
     {
         if ($numValue > 1) {
-            $utcDays = $numValue - ($this->workbook->datemode === 1 ? SPREADSHEET_EXCEL_READER_UTCOFFSETDAYS1904 : SPREADSHEET_EXCEL_READER_UTCOFFSETDAYS);
-            $utcValue = round(($utcDays+1) * SPREADSHEET_EXCEL_READER_MSINADAY);
+            $utcDays = $numValue - ($this->workbook->datemode === 1 ? Spreadsheet_Excel_Reader::UTCOFFSETDAYS1904 : Spreadsheet_Excel_Reader::UTCOFFSETDAYS);
+            $utcValue = round(($utcDays+1) * Spreadsheet_Excel_Reader::MSINADAY);
             $string = date ($this->curformat, $utcValue);
             $raw = $utcValue;
         } else {
             $raw = $numValue;
             $hours = floor($numValue * 24);
             $mins = floor($numValue * 24 * 60) - $hours * 60;
-            $secs = floor($numValue * SPREADSHEET_EXCEL_READER_MSINADAY) - $hours * 60 * 60 - $mins * 60;
+            $secs = floor($numValue * Spreadsheet_Excel_Reader::MSINADAY) - $hours * 60 * 60 - $mins * 60;
             $string = date ($this->curformat, mktime($hours, $mins, $secs));
         }
 
@@ -81,11 +81,11 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
         $code   = $this->_readInt(2);
         $length = $this->_readInt(2);
 
-        assert($code == SPREADSHEET_EXCEL_READER_TYPE_BOF);
+        assert($code == Spreadsheet_Excel_Reader::TYPE_BOF);
 
         $row_block_count = 0;
 
-        while($code != SPREADSHEET_EXCEL_READER_TYPE_EOF) {
+        while($code != Spreadsheet_Excel_Reader::TYPE_EOF) {
 
             $this->multiplier = 1; // need for format with %
 
@@ -93,7 +93,7 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
 
 
                 // Section 6.8
-                case SPREADSHEET_EXCEL_READER_TYPE_BOF:
+                case Spreadsheet_Excel_Reader::TYPE_BOF:
 
                     // The version in worksheet streams cannot be trusted
                     fseek($this->_stream, 2, SEEK_CUR);
@@ -101,7 +101,7 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
                     $build_id       = $this->_readInt(2);
                     $build_year     = $this->_readInt(2);
 
-                    assert($substream_type == SPREADSHEET_EXCEL_READER_WORKSHEET);
+                    assert($substream_type == Spreadsheet_Excel_Reader::WORKSHEET);
 
                     if ($this->workbook->version == 8) {
                         $file_history_flags = $this->_readInt(4);
@@ -115,7 +115,7 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
                 // Section 6.104
                 // The contents are not used, the presence of this record flags the property
                 // TODO store?
-                case SPREADSHEET_EXCEL_READER_TYPE_UNCALCED:
+                case Spreadsheet_Excel_Reader::TYPE_UNCALCED:
 
                     fseek($this->_stream, 2, SEEK_CUR);
                     break;
@@ -123,7 +123,7 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
 
                 // Index - contains range of used rows and stream positions to several records
                 // Section 6.55
-                case SPREADSHEET_EXCEL_READER_TYPE_INDEX:
+                case Spreadsheet_Excel_Reader::TYPE_INDEX:
 //echo "type index\n";
 
                     fseek($this->_stream, 4, SEEK_CUR);
@@ -148,7 +148,7 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
                 // Default height for rows that do not have a corresponding
                 // ROW record
                 // Section 6.28
-                case SPREADSHEET_EXCEL_READER_TYPE_DEFAULTROWHEIGHT:
+                case Spreadsheet_Excel_Reader::TYPE_DEFAULTROWHEIGHT:
 //echo "DEFAULTROWHEIGHT\n";
                     $options        = $this->_readInt(2);
                     $default_unused = $this->_readInt(2);
@@ -159,27 +159,27 @@ class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader
                 // --- BEGIN worksheet protection ---
                 //
 
-                case SPREADSHEET_EXCEL_READER_TYPE_PROTECT:
+                case Spreadsheet_Excel_Reader::TYPE_PROTECT:
 echo "protect\n";
                     $protected = $this->_readInt(2);
                     break;
 
-                case SPREADSHEET_EXCEL_READER_TYPE_WINDOWPROTECT:
+                case Spreadsheet_Excel_Reader::TYPE_WINDOWPROTECT:
 echo "windowprotect\n";
                     $window_settings_protected = $this->_readInt(2);
                     break;
 
-                case SPREADSHEET_EXCEL_READER_TYPE_OBJECTPROTECT:
+                case Spreadsheet_Excel_Reader::TYPE_OBJECTPROTECT:
 echo "objectprotect\n";
                     $objects_protected = $this->_readInt(2);
                     break;
 
-                case SPREADSHEET_EXCEL_READER_TYPE_SCENPROTECT:
+                case Spreadsheet_Excel_Reader::TYPE_SCENPROTECT:
 echo "scenprotect\n";
                     $scenarios_protected = $this->_readInt(2);
                     break;
 
-                case SPREADSHEET_EXCEL_READER_TYPE_PASSWORD:
+                case Spreadsheet_Excel_Reader::TYPE_PASSWORD:
 echo "password\n";
                     $password = fread($this->_stream, 2);
                     break;
@@ -188,12 +188,12 @@ echo "password\n";
                 // --- END worksheet protection ---
                 //
 
-                case SPREADSHEET_EXCEL_READER_TYPE_DEFCOLWIDTH:
+                case Spreadsheet_Excel_Reader::TYPE_DEFCOLWIDTH:
 echo "defcolwidth\n";
                     $col_width = $this->_readInt(2);
                     break;
 
-                case SPREADSHEET_EXCEL_READER_TYPE_COLINFO:
+                case Spreadsheet_Excel_Reader::TYPE_COLINFO:
 echo "colinfo\n";
                     $first_col  = $this->_readInt(2);
                     $last_col   = $this->_readInt(2);
@@ -205,7 +205,7 @@ echo "colinfo\n";
 
 
                 // Section 6.31
-                case SPREADSHEET_EXCEL_READER_TYPE_DIMENSIONS:
+                case Spreadsheet_Excel_Reader::TYPE_DIMENSIONS:
 echo "dimensions\n";
                     if ($this->workbook->version == 7){
                         $first_row = $this->_readInt(2);
@@ -225,7 +225,7 @@ echo "dimensions\n";
 
                     break;
 
-                case SPREADSHEET_EXCEL_READER_TYPE_ROW:
+                case Spreadsheet_Excel_Reader::TYPE_ROW:
 echo "row\n";
                     $row_index  = $this->_readInt(2);
                     $first_col  = $this->_readInt(2);
@@ -244,7 +244,7 @@ echo "row\n";
                 // --- BEGIN cell block ---
                 //
 
-                case SPREADSHEET_EXCEL_READER_TYPE_BLANK:
+                case Spreadsheet_Excel_Reader::TYPE_BLANK:
 echo "BLANK\n";
                     // TODO
                     // store information
@@ -256,7 +256,7 @@ echo "BLANK\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_BOOLERR:
+                case Spreadsheet_Excel_Reader::TYPE_BOOLERR:
 echo "type boolerr\n";
 
                     // TODO
@@ -272,7 +272,7 @@ echo "type boolerr\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_LABEL:
+                case Spreadsheet_Excel_Reader::TYPE_LABEL:
 echo "Type label\n";
                     $row_index = $this->_readInt(2);
                     $col_index = $this->_readInt(2);
@@ -289,7 +289,7 @@ echo "Type label\n";
                     break;
 
                 // Section 6.61
-                case SPREADSHEET_EXCEL_READER_TYPE_LABELSST:
+                case Spreadsheet_Excel_Reader::TYPE_LABELSST:
 echo "labelsst"."\n";
 
                     $row_index = $this->_readInt(2);
@@ -304,7 +304,7 @@ echo "labelsst"."\n";
 
                 // Section 6.64
                 // Multiple blank
-                case SPREADSHEET_EXCEL_READER_TYPE_MULBLANK:
+                case Spreadsheet_Excel_Reader::TYPE_MULBLANK:
 echo "MULBLANK\n";
 
                     // TODO
@@ -333,7 +333,7 @@ echo "MULBLANK\n";
 
                 // Section 6.64
                 // Multiple RK
-                case SPREADSHEET_EXCEL_READER_TYPE_MULRK:
+                case Spreadsheet_Excel_Reader::TYPE_MULRK:
 echo "type mulrk"."\n";
                     
                     $row_index       = $this->_readInt(2);
@@ -373,7 +373,7 @@ echo "type mulrk"."\n";
                 // Stores floating point values that cannot be stored as an RK value?
                 // Section 6.68
 
-                case SPREADSHEET_EXCEL_READER_TYPE_NUMBER:
+                case Spreadsheet_Excel_Reader::TYPE_NUMBER:
 echo "type number\n";
 
                     $row_index = $this->_readInt(2);
@@ -396,9 +396,9 @@ echo "type number\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_RK:
+                case Spreadsheet_Excel_Reader::TYPE_RK:
 
-echo 'SPREADSHEET_EXCEL_READER_TYPE_RK'."\n";
+echo 'Spreadsheet_Excel_Reader::TYPE_RK'."\n";
 
                     $row_index = $this->_readInt(2);        
                     $col_index = $this->_readInt(2);        
@@ -432,7 +432,7 @@ echo "date: $string \n";
                 // BIFF8 Uses this record only for the clipboard
                 // Section 6.84
 
-                case SPREADSHEET_EXCEL_READER_TYPE_RSTRING:
+                case Spreadsheet_Excel_Reader::TYPE_RSTRING:
 
                     $row_index = $this->_readInt(2);
                     $col_index = $this->_readInt(2);
@@ -447,7 +447,7 @@ echo "date: $string \n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_FORMULA:
+                case Spreadsheet_Excel_Reader::TYPE_FORMULA:
 echo "type formula\n";
 
                     $row_index = $this->_readInt(2);
@@ -480,7 +480,7 @@ echo "type formula\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_ARRAY:
+                case Spreadsheet_Excel_Reader::TYPE_ARRAY:
 
                     // TODO
                     fseek($this->_stream, 12, SEEK_CUR);
@@ -490,7 +490,7 @@ echo "type formula\n";
 
                 // Shared Formula
                 // Section 6.94
-                case SPREADSHEET_EXCEL_READER_TYPE_SHRFMLA:
+                case Spreadsheet_Excel_Reader::TYPE_SHRFMLA:
                     
                     // TODO
                     fseek($this->_stream, 8, SEEK_CUR);
@@ -498,14 +498,14 @@ echo "type formula\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_TABLEOP:
+                case Spreadsheet_Excel_Reader::TYPE_TABLEOP:
 
                     // TODO
                     fseek($this->_stream, 16, SEEK_CUR);
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_DBCELL:
+                case Spreadsheet_Excel_Reader::TYPE_DBCELL:
 echo 'type dbcell'."\n";
 
                     //todo?
@@ -518,7 +518,7 @@ echo 'type dbcell'."\n";
                 // Worksheet View Settings Block
                 //
 
-                case SPREADSHEET_EXCEL_READER_TYPE_WINDOW2:
+                case Spreadsheet_Excel_Reader::TYPE_WINDOW2:
 echo "type window2\n";
                     $options   = $this->_readInt(2);
                     $row_index = $this->_readInt(2);
@@ -543,14 +543,14 @@ echo "type window2\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_PANE:
+                case Spreadsheet_Excel_Reader::TYPE_PANE:
 //echo "type pane\n";
                     // todo this might be useful
                     fseek($this->_stream, 9, SEEK_CUR);
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_SELECTION:
+                case Spreadsheet_Excel_Reader::TYPE_SELECTION:
 //echo "type selection\n";
                     // todo store on a pane basis
                     $pane_id                   = $this->_readInt(1);
@@ -561,7 +561,7 @@ echo "type window2\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_PHONETIC:
+                case Spreadsheet_Excel_Reader::TYPE_PHONETIC:
 echo "type phonetic\n";
                     // todo store
                     $font_index     = $this->_readInt(2);
@@ -570,7 +570,7 @@ echo "type phonetic\n";
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_MERGEDCELLS:
+                case Spreadsheet_Excel_Reader::TYPE_MERGEDCELLS:
 echo 'type merged cell'."\n";
 exit;
                     $cellRanges = ord($this->_stream[$spos]) | ord($this->_stream[$spos+1])<<8;
@@ -598,45 +598,45 @@ exit;
 
                 // calculation settings block
                 // occurs in every stream and is global for the entire workbook
-                case SPREADSHEET_EXCEL_READER_TYPE_CALCCOUNT:
-                case SPREADSHEET_EXCEL_READER_TYPE_CALCMODE:
-                case SPREADSHEET_EXCEL_READER_TYPE_PRECISION:
-                case SPREADSHEET_EXCEL_READER_TYPE_REFMODE:
-                case SPREADSHEET_EXCEL_READER_TYPE_ITERATION:
-                case SPREADSHEET_EXCEL_READER_TYPE_SAVERECALC:
-                case SPREADSHEET_EXCEL_READER_TYPE_DELTA:
+                case Spreadsheet_Excel_Reader::TYPE_CALCCOUNT:
+                case Spreadsheet_Excel_Reader::TYPE_CALCMODE:
+                case Spreadsheet_Excel_Reader::TYPE_PRECISION:
+                case Spreadsheet_Excel_Reader::TYPE_REFMODE:
+                case Spreadsheet_Excel_Reader::TYPE_ITERATION:
+                case Spreadsheet_Excel_Reader::TYPE_SAVERECALC:
+                case Spreadsheet_Excel_Reader::TYPE_DELTA:
 
                 // print dialog options
                 // could be useful if using to determine whether to display
                 // gridlines or headers
-                case SPREADSHEET_EXCEL_READER_TYPE_PRINTHEADERS:
-                case SPREADSHEET_EXCEL_READER_TYPE_PRINTGRIDLINES:
-                case SPREADSHEET_EXCEL_READER_TYPE_GRIDSET:         // gridlines ever been set?
+                case Spreadsheet_Excel_Reader::TYPE_PRINTHEADERS:
+                case Spreadsheet_Excel_Reader::TYPE_PRINTGRIDLINES:
+                case Spreadsheet_Excel_Reader::TYPE_GRIDSET:         // gridlines ever been set?
 
-                case SPREADSHEET_EXCEL_READER_TYPE_GUTS:            // outline symbol area display options
+                case Spreadsheet_Excel_Reader::TYPE_GUTS:            // outline symbol area display options
 
-                case SPREADSHEET_EXCEL_READER_TYPE_WSBOOL:          // Worksheet boolean options
+                case Spreadsheet_Excel_Reader::TYPE_WSBOOL:          // Worksheet boolean options
 
 
                 // page settings block
-                case SPREADSHEET_EXCEL_READER_TYPE_HORIZONTALPAGEBREAKS:
-                case SPREADSHEET_EXCEL_READER_TYPE_VERTICALPAGEBREAKS:
-                case SPREADSHEET_EXCEL_READER_TYPE_HEADER:
-                case SPREADSHEET_EXCEL_READER_TYPE_FOOTER:
-                case SPREADSHEET_EXCEL_READER_TYPE_HCENTER:
-                case SPREADSHEET_EXCEL_READER_TYPE_VCENTER:
-                case SPREADSHEET_EXCEL_READER_TYPE_LEFTMARGIN:
-                case SPREADSHEET_EXCEL_READER_TYPE_RIGHTMARGIN:
-                case SPREADSHEET_EXCEL_READER_TYPE_TOPMARGIN:
-                case SPREADSHEET_EXCEL_READER_TYPE_BOTTOMMARGIN:
+                case Spreadsheet_Excel_Reader::TYPE_HORIZONTALPAGEBREAKS:
+                case Spreadsheet_Excel_Reader::TYPE_VERTICALPAGEBREAKS:
+                case Spreadsheet_Excel_Reader::TYPE_HEADER:
+                case Spreadsheet_Excel_Reader::TYPE_FOOTER:
+                case Spreadsheet_Excel_Reader::TYPE_HCENTER:
+                case Spreadsheet_Excel_Reader::TYPE_VCENTER:
+                case Spreadsheet_Excel_Reader::TYPE_LEFTMARGIN:
+                case Spreadsheet_Excel_Reader::TYPE_RIGHTMARGIN:
+                case Spreadsheet_Excel_Reader::TYPE_TOPMARGIN:
+                case Spreadsheet_Excel_Reader::TYPE_BOTTOMMARGIN:
                 // Undocumented
-                //case SPREADSHEET_EXCEL_READER_TYPE_PLS:
-                case SPREADSHEET_EXCEL_READER_TYPE_SETUP:
-                case SPREADSHEET_EXCEL_READER_TYPE_BITMAP:
+                //case Spreadsheet_Excel_Reader::TYPE_PLS:
+                case Spreadsheet_Excel_Reader::TYPE_SETUP:
+                case Spreadsheet_Excel_Reader::TYPE_BITMAP:
 
 
                 // view settings
-                case SPREADSHEET_EXCEL_READER_TYPE_SCL:             // view magnification
+                case Spreadsheet_Excel_Reader::TYPE_SCL:             // view magnification
 
 
                 default:

@@ -62,24 +62,24 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
         $code   = $this->_readInt(2);
         $length = $this->_readInt(2);
 
-        assert($code === SPREADSHEET_EXCEL_READER_TYPE_BOF);
+        assert($code === Spreadsheet_Excel_Reader::TYPE_BOF);
 
-        while ($code != SPREADSHEET_EXCEL_READER_TYPE_EOF) {
+        while ($code != Spreadsheet_Excel_Reader::TYPE_EOF) {
 
             switch ($code) {
 
                 // Beginning Of File
                 // Section 6.8
-                case SPREADSHEET_EXCEL_READER_TYPE_BOF:
+                case Spreadsheet_Excel_Reader::TYPE_BOF:
 
                     $version        = $this->_readInt(2);
                     $substream_type = $this->_readInt(2);
 
-                    if ($version == SPREADSHEET_EXCEL_READER_BIFF8) {
+                    if ($version == Spreadsheet_Excel_Reader::BIFF8) {
 
                         $workbook->version = 8;
 
-                    } else if ($version == SPREADSHEET_EXCEL_READER_BIFF7) {
+                    } else if ($version == Spreadsheet_Excel_Reader::BIFF7) {
 
                         $workbook->version = 7;
 
@@ -88,7 +88,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                         throw new Spreadsheeet_Excel_Reader_Exception('Unsupported Excel Version');
                     }
 
-                    assert($substream_type == SPREADSHEET_EXCEL_READER_WORKBOOKGLOBALS);
+                    assert($substream_type == Spreadsheet_Excel_Reader::WORKBOOKGLOBALS);
 
                     $workbook->build_id   = $this->_readInt(2);
                     $workbook->build_year = $this->_readInt(2);
@@ -104,7 +104,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                 // SST Record - Shared String Table
                 // Section 6.96
                 // BIFF8 only
-                case SPREADSHEET_EXCEL_READER_TYPE_SST:
+                case Spreadsheet_Excel_Reader::TYPE_SST:
 //echo "Type_SST\n";
 
                     $total_strings  = $this->_readInt(4);
@@ -119,10 +119,10 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 // File Password
                 // Ignore?
-                case SPREADSHEET_EXCEL_READER_TYPE_FILEPASS:
+                case Spreadsheet_Excel_Reader::TYPE_FILEPASS:
 //echo "Type_filepass\n";
                     //TODO
-                    if ($workbook->version == SPREADSHEET_EXCEL_READER_BIFF7) {
+                    if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
 
                         $encryption_key = $this->_readInt(2);
                         $hash_value     = $this->_readInt(2);
@@ -131,7 +131,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                         $encryption = $this->_readInt(2);
 
-                        if ($encryption == SPREADSHEET_EXCEL_READER_ENCRYPTION_WEAK) {
+                        if ($encryption == Spreadsheet_Excel_Reader::ENCRYPTION_WEAK) {
 
                             $encryption_key = $this->_readInt(2);
                             $hash_value     = $this->_readInt(2);
@@ -141,7 +141,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                             fseek($this->_stream, 2, SEEK_CUR);
                             $encryption2 = $this->_readInt(2);
 
-                            if ($encryption2 == SPREADSHEET_EXCEL_READER_ENCRYPTION_STANDARD) {
+                            if ($encryption2 == Spreadsheet_Excel_Reader::ENCRYPTION_STANDARD) {
 
                                 fseek($this->_stream, 48, SEEK_CUR);
 
@@ -163,7 +163,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
 
                 // Not relevant
-                case SPREADSHEET_EXCEL_READER_TYPE_NAME:
+                case Spreadsheet_Excel_Reader::TYPE_NAME:
 //echo "Type_NAME\n";
                     fseek($this->_stream, $length, SEEK_CUR);
                     break;
@@ -171,7 +171,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 // Section 6.45
                 // Note: Currency records are always written
-                case SPREADSHEET_EXCEL_READER_TYPE_FORMAT:
+                case Spreadsheet_Excel_Reader::TYPE_FORMAT:
 
                     $index = $this->_readInt(2);
 
@@ -186,7 +186,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
 
                 // Section 6.115
-                case SPREADSHEET_EXCEL_READER_TYPE_XF:
+                case Spreadsheet_Excel_Reader::TYPE_XF:
 
                     $font_index   = $this->_readInt(2);
                     $format_index = $this->_readInt(2);
@@ -240,14 +240,14 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
 
                 // Section 6.25
-                case SPREADSHEET_EXCEL_READER_TYPE_DATEMODE:
+                case Spreadsheet_Excel_Reader::TYPE_DATEMODE:
 
                     $workbook->datemode = $this->_readInt(2);
                     break;
 
 
                 // Section 6.12
-                case SPREADSHEET_EXCEL_READER_TYPE_BOUNDSHEET:
+                case Spreadsheet_Excel_Reader::TYPE_BOUNDSHEET:
 
                     $offset     = $this->_readInt(4);
                     $visibility = $this->_readInt(1);
@@ -267,9 +267,9 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                     break;
 
-                case SPREADSHEET_EXCEL_READER_TYPE_WRITEACCESS:
+                case Spreadsheet_Excel_Reader::TYPE_WRITEACCESS:
 
-                    if ($workbook->version == SPREADSHEET_EXCEL_READER_BIFF7) {
+                    if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
                         $workbook->user = $this->_readString(1);
                     } else {
                         $workbook->user = $this->_readUnicodeString(2);
@@ -279,7 +279,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
 
                 // text encoding is only relevant for biff7
-                case SPREADSHEET_EXCEL_READER_TYPE_CODEPAGE:
+                case Spreadsheet_Excel_Reader::TYPE_CODEPAGE:
 //echo "type codepage\n";
                     fseek($this->_stream, 2, SEEK_CUR);
                     break;
@@ -287,7 +287,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 // Double Stream File flag
                 // not relevant
-                case SPREADSHEET_EXCEL_READER_TYPE_DSF:
+                case Spreadsheet_Excel_Reader::TYPE_DSF:
 //echo "type dsf\n";
                     fseek($this->_stream, 2, SEEK_CUR);
                     break;
@@ -295,7 +295,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 // Window Settings Protection
                 // not relevant
-                case SPREADSHEET_EXCEL_READER_TYPE_WINDOWPROTECT:
+                case Spreadsheet_Excel_Reader::TYPE_WINDOWPROTECT:
 //echo "type windowprotect\n";
                     fseek($this->_stream, 2, SEEK_CUR);
                     break;
@@ -303,7 +303,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 // Workbook Protection
                 // Flags whether a worksheet/workbook is protected
-                case SPREADSHEET_EXCEL_READER_TYPE_PROTECT:
+                case Spreadsheet_Excel_Reader::TYPE_PROTECT:
 //echo "type protect\n";
                     // todo store
                     $protection = $this->_readInt(2);
@@ -312,14 +312,14 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 // PASSWORD
                 // 0 means no password
-                case SPREADSHEET_EXCEL_READER_TYPE_PASSWORD:
+                case Spreadsheet_Excel_Reader::TYPE_PASSWORD:
 //echo "type password\n";
                     // todo store
                     $password = $this->_readInt(2);
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_WINDOW1:
+                case Spreadsheet_Excel_Reader::TYPE_WINDOW1:
 //echo "type window1\n";
                     // useful information?
                     $horizontal_position        = $this->_readInt(2);
@@ -337,13 +337,13 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                 // Formula Calculation Precision
                 // Flags whether formulas use the real values or displayed values for calculation
                 // todo store?
-                case SPREADSHEET_EXCEL_READER_TYPE_PRECISION:
+                case Spreadsheet_Excel_Reader::TYPE_PRECISION:
 //echo "type precision\n";
                     fseek($this->_stream, 2, SEEK_CUR);
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_FONT:
+                case Spreadsheet_Excel_Reader::TYPE_FONT:
 //echo "type font\n";
                     $font_record = array();
                     $font_record['height']     = $this->_readInt(2);
@@ -357,7 +357,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                     fseek($this->_stream, 1, SEEK_CUR);
 
-                    if ($workbook->version == SPREADSHEET_EXCEL_READER_BIFF7) {
+                    if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
                         $font_record['name'] = $this->_readString(1);
                     } else {
                         $font_record['name'] = $this->_readString(2);
@@ -371,7 +371,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                 // Style record
                 // Stores the name for user defined, options for built-in
                 // Section 6.99
-                case SPREADSHEET_EXCEL_READER_TYPE_STYLE:
+                case Spreadsheet_Excel_Reader::TYPE_STYLE:
 //echo "type style\n";
                     $xf_index = $this->_readInt(2);
 
@@ -387,7 +387,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                     } else {
 
                         // user defined style
-                        if ($workbook->version == SPREADSHEET_EXCEL_READER_BIFF7) {
+                        if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
 
                             $name = $this->_readString(1);
 
@@ -402,7 +402,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_PALETTE:
+                case Spreadsheet_Excel_Reader::TYPE_PALETTE:
 //echo "type palette\n";
                     $num_colours = $this->_readInt(2);
 
@@ -458,14 +458,14 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_USESELFS:
+                case Spreadsheet_Excel_Reader::TYPE_USESELFS:
 //echo "type useselfs\n";
                     // todo store
                     $use_natural_language_formulas = $this->_readInt(2);
                     break;
 
 
-                case SPREADSHEET_EXCEL_READER_TYPE_COUNTRY:
+                case Spreadsheet_Excel_Reader::TYPE_COUNTRY:
 //echo "type country\n";
                     // todo store
                     $ui_country       = $this->_readInt(2);
@@ -475,21 +475,21 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 // Create a backup on saving
                 // not relevant
-                case SPREADSHEET_EXCEL_READER_TYPE_BACKUP:
+                case Spreadsheet_Excel_Reader::TYPE_BACKUP:
 
                 // Hide Objects
                 // not relevant
-                case SPREADSHEET_EXCEL_READER_TYPE_HIDEOBJ:
+                case Spreadsheet_Excel_Reader::TYPE_HIDEOBJ:
 
                 // save values from external books
                 // not relevant
-                case SPREADSHEET_EXCEL_READER_TYPE_BOOKBOOL:
+                case Spreadsheet_Excel_Reader::TYPE_BOOKBOOL:
 
                 // Extended SST
                 //
                 // hash table to offsets within the sst
                 // not relevant
-                case SPREADSHEET_EXCEL_READER_TYPE_EXTSST:
+                case Spreadsheet_Excel_Reader::TYPE_EXTSST:
 
                 default:
 

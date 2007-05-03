@@ -147,7 +147,7 @@ var_dump('phonetic 2');
     {
         $pos = ftell($this->_stream);
         fseek($this->_stream, 6, SEEK_CUR);
-        $is_float = ($this->_readInt(2) !== SPREADSHEET_EXCEL_READER_RESULT_NOTFLOAT);
+        $is_float = ($this->_readInt(2) !== Spreadsheet_Excel_Reader::RESULT_NOTFLOAT);
         fseek($this->_stream, $pos);
 
         if ($is_float) {
@@ -160,15 +160,15 @@ var_dump('phonetic 2');
 
             switch ($type) {
                 
-                case SPREADSHEET_EXCEL_READER_RESULT_STRING:
-                case SPREADSHEET_EXCEL_READER_RESULT_EMPTY:
+                case Spreadsheet_Excel_Reader::RESULT_STRING:
+                case Spreadsheet_Excel_Reader::RESULT_EMPTY:
                 default:
                     fseek($this->_stream, 7, SEEK_CUR);
                     $result = null;
                     break;
 
-                case SPREADSHEET_EXCEL_READER_RESULT_BOOL:
-                case SPREADSHEET_EXCEL_READER_RESULT_ERROR:
+                case Spreadsheet_Excel_Reader::RESULT_BOOL:
+                case Spreadsheet_Excel_Reader::RESULT_ERROR:
                     fseek($this->_stream, 1, SEEK_CUR);
                     $result = $this->_readInt(1);
                     fseek($this->_stream, 5, SEEK_CUR);
@@ -220,7 +220,7 @@ echo "converting float...\n";
 
             // automatic float conversion
             $number = pow(-1, $sign) *
-                      pow( 2, $exponent - SPREADSHEET_EXCEL_READER_EXPONENT_BIAS) *
+                      pow( 2, $exponent - Spreadsheet_Excel_Reader::EXPONENT_BIAS) *
                       (1 + $mantissa / pow(2, 18));
         }
 
