@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Spreadsheet/Excel/Reader/Parser.php';
+require_once 'Spreadsheet/Excel/Reader/BIFFParser.php';
 require_once 'Spreadsheet/Excel/Reader/Workbook.php';
 
 class Spreadsheet_Excel_Reader_BIFFParser_Workbook extends Spreadsheet_Excel_Reader_BIFFParser
