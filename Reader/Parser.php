@@ -2,8 +2,13 @@
 
 require_once 'Spreadsheet/Excel/Reader.php';
 
-abstract class Spreadsheet_Excel_Reader_Parser
+abstract class Spreadsheet_Excel_Reader_BIFFParser
 {
+    /**
+     * BIFF version - Either 7 or 8
+     */
+    public $version;
+
     /**
      * File Stream from within the OLE container
      * 
@@ -43,10 +48,9 @@ abstract class Spreadsheet_Excel_Reader_Parser
         }
 
         if (($value = fread($this->_stream, $size)) === false) {
-            // TODO
-            // throw exception?
-            die('Error reading stream');
+            return new Spreadsheet_Excel_Reader_Exception('Error reading stream');
         }
+
         list(, $value) = unpack($format, $value);
         return $value;
     }
@@ -65,9 +69,7 @@ abstract class Spreadsheet_Excel_Reader_Parser
     protected function _readDouble()
     {
         if (($value = fread($this->_stream, 8)) === false) {
-            // TODO
-            // throw exception?
-            die('Error reading stream');
+            return new Spreadsheet_Excel_Reader_Exception('Error reading stream');
         }
         list(, $t) = unpack('C', pack('S', 256));
 
@@ -243,9 +245,18 @@ echo "dividing...\n";
         $first_col_index = $this->_readInt($col_size);
         $last_col_index  = $this->_readInt($col_size);
 
+        if ($last_row_index == Spreadsheet_Excel_Reader::ROW_LIMIT - 1) {
+            $last_row_index = '*';
+        }
+
+
+        if ($last_col_index == Spreadsheet_Excel_Reader::COL_LIMIT - 1) {
+            $last_col_index = '*';
+        }
+
         return array($first_row_index,
-                     $last_row_index,
                      $first_col_index,
+                     $last_row_index,
                      $last_col_index);
     }
 

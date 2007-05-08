@@ -3,12 +3,6 @@
 class Excel_Workbook
 {
     /**
-     * Workbook version
-     * Either 8 (BIFF8) or 7 (BIFF7)
-     */
-    public $version = 8;
-
-    /**
      * List of worksheets that form part of this workbook
      * 
      * @access public

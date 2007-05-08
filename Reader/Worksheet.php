@@ -33,20 +33,21 @@ class Excel_Worksheet
 
     public function addCell($row, $col, $xf, $value, $type = 'Unknown', $raw = null)
     {
-        $cell = new Excel_Cell($this, $row, $col, $xf, $value);
-
         if (is_null($type)) {
             $raw = $value;
         }
 
-        $this->cells[$row][$col]['value'] = $value;
-        $this->cells[$row][$col]['type']  = $value;
-        $this->cells[$row][$col]['raw']   = $raw;
-        $this->cells[$raw][$col]['xf']    = $xf;
+        $cell = new Excel_Cell($this, $row, $col, $xf, $value);
+        $this->cells[$row][$col] = $cell;
     }
 
     public function toArray()
     {
+    }
+
+    public function getSelectedCells()
+    {
+        
     }
 }
 

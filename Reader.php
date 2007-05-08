@@ -7,7 +7,8 @@
  * Based on PHPExcelReader by Vadim Tkachenko.
  * (http://sourceforge.net/projects/phpexcelreader)
  *
- * Reads only Biff 7 and Biff 8 formats.
+ * Reads only BIFF 7 and BIFF 8 formats at this stage.  Plans for implementing
+ * an XML parser for Excel 2007 are in place.
  *
  * PHP version 5
  *
@@ -57,7 +58,7 @@ class Spreadsheet_Excel_Reader_Exception extends PEAR_Exception{}
  * Originally developed by Vadim Tkachenko under the name PHPExcelReader.
  * (http://sourceforge.net/projects/phpexcelreader)
  * Based on the Java version by Andy Khan (http://www.andykhan.com).  Now
- * maintained by David Sanders.  Reads only Biff 7 and Biff 8 formats.
+ * maintained by David Sanders.  Reads only BIFF 7 and BIFF 8 formats.
  *
  * @category   Spreadsheet
  * @package    Spreadsheet_Excel_Reader
@@ -223,6 +224,9 @@ class Spreadsheet_Excel_Reader
 
 
     const EXPONENT_BIAS   = 1023;
+
+    const ROW_LIMIT = 16384;
+    const COL_LIMIT = 256;
 
 
 

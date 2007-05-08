@@ -16,8 +16,7 @@ class Excel_Cell
      */
     private $_value;
 
-
-    public function __construct($worksheet, $row, $col, $xf, $value, $type = 'LABEL')
+    public function __construct(Excel_Worksheet $worksheet, $row, $col, $xf, $value, $type = 'LABEL')
     {
         $this->_row_index = $row;
         $this->_col_index = $col;
@@ -61,17 +60,33 @@ class Excel_Cell
         'ss'  => 's',
     );
 
-    private function convertDateFormat()
+
+    private function format()
     {
         $format_index = $this->worksheet->workbook->xf_records[$this->xf_index]['format_index'];
         $format_str   = $this->worksheet->workbook->format_records[$format_index];
-        return str_replace(array_keys($this->date_format_map), array_values($this->date_format_map), $format_str);
+
+        $type = $this->getNumberType();
+
+        if ($type === 'DATE') {
+            return $this->getDateFormat();
+        } else if ($type === 'NUMBER') {
+            return $this->getNumberFormat();
+        }
     }
 
-    private function convertNumberFormat()
+    private function getDateFormat($format_str)
     {
-        $format_index = $this->worksheet->workbook->xf_records[$this->xf_index]['format_index'];
-        $format_str   = $this->worksheet->workbook->format_records[$format_index];
+        $date = $this->getDate();
+        return $date->format(str_replace(array_keys($this->date_format_map),
+                                         array_values($this->date_format_map),
+                                         $format_str));
+    }
+
+
+    // todo handle money format
+    private function getNumberFormat($format_str)
+    {
         $is_formatted = strstr($format_str, '#,##') !== false;
         $matches = array();
         if (preg_match('/0\.(0)+/', $format_str, $matches)) {
@@ -80,7 +95,13 @@ class Excel_Cell
             $precision = 0;
         }
 
+        $is_percentage = strstr($format_str, '%') !== false;
+
         $value = $this->_value;
+
+        if ($is_percentage) {
+            $value *= 100;
+        }
 
         if ($precision > 0) {
             $value = round($value, $precision);
@@ -90,12 +111,11 @@ class Excel_Cell
             $value = number_format($value);
         }
 
-        return $value;
-    }
+        if ($is_percentage) {
+            $value .= '%';
+        }
 
-    public function format()
-    {
-        // switch date, call appropriate function
+        return $value;
     }
 
     public function getDate()

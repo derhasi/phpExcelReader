@@ -3,18 +3,18 @@
 require_once 'Spreadsheet/Excel/Reader/Parser.php';
 require_once 'Spreadsheet/Excel/Reader/Worksheet.php';
 
-class Spreadsheet_Excel_Reader_Parser_Worksheet extends Spreadsheet_Excel_Reader_Parser
+class Spreadsheet_Excel_Reader_BIFFParser_Worksheet extends Spreadsheet_Excel_Reader_BIFFParser
 {
-
     private $first_row_index;
     private $last_row_index;
 
     private $workbook;
 
-    function __construct($stream, $workbook)
+    function __construct($stream, $workbook, $version)
     {
         parent::__construct($stream);
         $this->workbook = $workbook;
+        $this->version = $version;
     }
 
     private function isDate($xf_index)
@@ -105,7 +105,7 @@ assert($code == Spreadsheet_Excel_Reader::TYPE_BOF);
 // TODO change me
 assert($substream_type == Spreadsheet_Excel_Reader::WORKSHEET);
 
-                    if ($this->workbook->version == 8) {
+                    if ($this->version == 8) {
                         $file_history_flags = $this->_readInt(4);
                         $lowest_version     = $this->_readInt(4);
                     }
@@ -129,7 +129,7 @@ assert($substream_type == Spreadsheet_Excel_Reader::WORKSHEET);
 //echo "type index\n";
 
                     fseek($this->_stream, 4, SEEK_CUR);
-                    $int_size = $this->workbook->version == 7 ? 2 : 4;
+                    $int_size = $this->version == 7 ? 2 : 4;
                     $this->first_row_index = $this->_readInt($int_size);
                     $this->last_row_index  = $this->_readInt($int_size) - 1;
 
@@ -209,7 +209,7 @@ echo "colinfo\n";
                 // Section 6.31
                 case Spreadsheet_Excel_Reader::TYPE_DIMENSIONS:
 echo "dimensions\n";
-                    if ($this->workbook->version == 7){
+                    if ($this->version == 7){
                         $first_row = $this->_readInt(2);
                         $last_row  = $this->_readInt(2);
                     } else {
@@ -279,7 +279,7 @@ echo "Type label\n";
                     $col_index = $this->_readInt(2);
                     $xf_index  = $this->_readInt(2);
 
-                    if ($this->workbook->version == 7) {
+                    if ($this->version == 7) {
                         $label = $this->_readString(2);
                     } else {
                         $label = $this->_readUnicodeString(2);
@@ -347,6 +347,7 @@ echo "type mulrk"."\n";
                         $xf_index = $this->_readInt(2);
                         $value    = $this->_readInt(4);
 
+/*
                         if ($this->isDate($xf_index)) {
                             list($string, $raw) = $this->createDate($value);
                         } else {
@@ -358,8 +359,9 @@ echo "type mulrk"."\n";
 
                             $string = sprintf($this->curformat, $value * $this->multiplier);
                         }
+*/
 
-                        $worksheet->addCell($row_index, $first_col_index + $i, $xf_index, $string, $raw);
+                        $worksheet->addCell($row_index, $first_col_index + $i, $xf_index, $value);
                     }
 
                     break;
@@ -376,6 +378,7 @@ echo "type number\n";
                     $xf_index  = $this->_readInt(2);
                     $number    = $this->_readDouble();
 
+/*
                     if ($this->isDate($xf_index)) {
                         list($string, $raw) = $this->createDate($number);
                     } else {
@@ -385,8 +388,9 @@ echo "type number\n";
                         $raw = $number;
                         $string = sprintf($this->curformat, $number);
                     }
+*/
 
-                    $worksheet->addCell($row_index, $col_index, $xf_index, $string, $raw);
+                    $worksheet->addCell($row_index, $col_index, $xf_index, $number);
 
                     break;
 
@@ -401,24 +405,21 @@ echo 'Spreadsheet_Excel_Reader::TYPE_RK'."\n";
 
                     $rk_value  = $this->_readInt(4);
                     $number    = $this->_convertRKValue($rk_value);
-echo "RK number: $number\n";
 
+/*
                     if ($this->isDate($xf_index)) {
-echo "is date\n";
                         list($string, $raw) = $this->createDate($number);
-echo "date: $string \n";
                     } else {
                         $raw = $number;
                         if (isset($this->_columnsFormat[$col_index + 1])){
                                 $this->curformat = $this->_columnsFormat[$col_index + 1];
                         }
 
-                        // todo
-                        // multipler??
                         $string = sprintf($this->curformat, $number * $this->multiplier);
                     }
+*/
 
-                    $worksheet->addCell($row_index, $col_index, $xf_index, $string, $raw);
+                    $worksheet->addCell($row_index, $col_index, $xf_index, $number);
 
                     break;
 
@@ -428,6 +429,9 @@ echo "date: $string \n";
                 // Section 6.84
 
                 case Spreadsheet_Excel_Reader::TYPE_RSTRING:
+
+                    // TODO
+                    // store
 
                     $row_index = $this->_readInt(2);
                     $col_index = $this->_readInt(2);
@@ -458,6 +462,8 @@ echo "type formula\n";
 
                     // todo good enough check?
                     if (is_float($result)) {
+
+/*
                         if ($this->isDate($xf_index)) {
                             list($string, $raw) = $this->createDate($result);
                         } else {
@@ -468,8 +474,9 @@ echo "type formula\n";
                             $raw = $result;
                             $string = sprintf($this->curformat, $raw * $this->multiplier);
                         }
+*/
 
-                        $worksheet->addCell($row_index, $col_index, $xf_index, $string, $raw);
+                        $worksheet->addCell($row_index, $col_index, $xf_index, $result);
                     }
 
                     break;
@@ -519,7 +526,7 @@ echo "type window2\n";
                     $row_index = $this->_readInt(2);
                     $col_index = $this->_readInt(2);
 
-                    if ($this->workbook->version == 7) {
+                    if ($this->version == 7) {
 
                         $gridline_colour = $this->_readInt(4);
 
@@ -539,14 +546,14 @@ echo "type window2\n";
 
 
                 case Spreadsheet_Excel_Reader::TYPE_PANE:
-//echo "type pane\n";
+
                     // todo this might be useful
                     fseek($this->_stream, 9, SEEK_CUR);
                     break;
 
 
                 case Spreadsheet_Excel_Reader::TYPE_SELECTION:
-//echo "type selection\n";
+
                     // todo store on a pane basis
                     $pane_id                   = $this->_readInt(1);
                     $row_index                 = $this->_readInt(2);
@@ -566,24 +573,8 @@ echo "type phonetic\n";
 
 
                 case Spreadsheet_Excel_Reader::TYPE_MERGEDCELLS:
-echo 'type merged cell'."\n";
-                    // TODO
-exit;
-                    $cellRanges = ord($this->_stream[$spos]) | ord($this->_stream[$spos+1])<<8;
-                    for ($i = 0; $i < $cellRanges; $i++) {
-                        $fr =  ord($this->_stream[$spos + 8*$i + 2]) | ord($this->_stream[$spos + 8*$i + 3])<<8;
-                        $lr =  ord($this->_stream[$spos + 8*$i + 4]) | ord($this->_stream[$spos + 8*$i + 5])<<8;
-                        $fc =  ord($this->_stream[$spos + 8*$i + 6]) | ord($this->_stream[$spos + 8*$i + 7])<<8;
-                        $lc =  ord($this->_stream[$spos + 8*$i + 8]) | ord($this->_stream[$spos + 8*$i + 9])<<8;
-                        //$this->sheets[$this->sn]['mergedCells'][] = array($fr + 1, $fc + 1, $lr + 1, $lc + 1);
-                        if ($lr - $fr > 0) {
-                            $this->sheets[$this->sn]['cellsInfo'][$fr+1][$fc+1]['rowspan'] = $lr - $fr + 1;
-                        }
-                        if ($lc - $fc > 0) {
-                            $this->sheets[$this->sn]['cellsInfo'][$fr+1][$fc+1]['colspan'] = $lc - $fc + 1;
-                        }
-                    }
-                    //echo "Merged Cells $cellRanges $lr $fr $lc $fc\n";
+
+                    $worksheet->merged_cells = $this->_readCellRangeAddressList(1);        
                     break;
 
 
@@ -637,23 +628,15 @@ exit;
 
                 default:
                     break;
-
-/*
-echo "WARNING: UNKNOWN RECORD TYPE\n";
-echo 'File position: '. dechex(ftell($this->_stream))."\n";
-echo "Default data:\n";
-echo fread($this->_stream, $length);
-echo "\n\n";
-break;
-*/
             }
 
             // failsafe
             fseek($this->_stream, $pos + $length + 4);
-            $pos = ftell($this->_stream);
 
+            $pos    = ftell($this->_stream);
             $code   = $this->_readInt(2);
             $length = $this->_readInt(2);
+
 echo "\n";
 echo "*** NEW RECORD ***\n";
 echo "File position: 0x". dechex(ftell($this->_stream))."\n";

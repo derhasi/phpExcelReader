@@ -3,7 +3,7 @@
 require_once 'Spreadsheet/Excel/Reader/Parser.php';
 require_once 'Spreadsheet/Excel/Reader/Workbook.php';
 
-class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_Parser
+class Spreadsheet_Excel_Reader_BIFFParser_Workbook extends Spreadsheet_Excel_Reader_BIFFParser
 {
     private $_boundsheets = array();
 
@@ -77,11 +77,11 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                     if ($version == Spreadsheet_Excel_Reader::BIFF8) {
 
-                        $workbook->version = 8;
+                        $this->version = 8;
 
                     } else if ($version == Spreadsheet_Excel_Reader::BIFF7) {
 
-                        $workbook->version = 7;
+                        $this->version = 7;
 
                     } else {
 
@@ -93,7 +93,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                     $workbook->build_id   = $this->_readInt(2);
                     $workbook->build_year = $this->_readInt(2);
 
-                    if ($workbook->version == 8) {
+                    if ($this->version == 8) {
                         $workbook->history_flags  = $this->_readInt(4);
                         $workbook->lowest_version = $this->_readInt(4);
                     }
@@ -122,7 +122,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                 case Spreadsheet_Excel_Reader::TYPE_FILEPASS:
 //echo "Type_filepass\n";
                     //TODO
-                    if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
+                    if ($this->version == Spreadsheet_Excel_Reader::BIFF7) {
 
                         $encryption_key = $this->_readInt(2);
                         $hash_value     = $this->_readInt(2);
@@ -175,7 +175,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                     $index = $this->_readInt(2);
 
-                    if ($workbook->version == 8) {
+                    if ($this->version == 8) {
                         $format_string = $this->_readUnicodeString(2);
                     } else {
                         $format_string = $this->_readString(2);
@@ -257,7 +257,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                     $visibility = $this->_readInt(1);
                     $type       = $this->_readInt(1);
 
-                    if ($workbook->version == 8) {
+                    if ($this->version == 8) {
                         $name = $this->_readUnicodeString(1);
                     } else {
                         $name = $this->_readString(1);
@@ -273,7 +273,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                 case Spreadsheet_Excel_Reader::TYPE_WRITEACCESS:
 
-                    if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
+                    if ($this->version == Spreadsheet_Excel_Reader::BIFF7) {
                         $workbook->user = $this->_readString(1);
                     } else {
                         $workbook->user = $this->_readUnicodeString(2);
@@ -361,7 +361,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
 
                     fseek($this->_stream, 1, SEEK_CUR);
 
-                    if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
+                    if ($this->version == Spreadsheet_Excel_Reader::BIFF7) {
                         $font_record['name'] = $this->_readString(1);
                     } else {
                         $font_record['name'] = $this->_readString(2);
@@ -391,7 +391,7 @@ class Spreadsheet_Excel_Reader_Parser_Workbook extends Spreadsheet_Excel_Reader_
                     } else {
 
                         // user defined style
-                        if ($workbook->version == Spreadsheet_Excel_Reader::BIFF7) {
+                        if ($this->version == Spreadsheet_Excel_Reader::BIFF7) {
 
                             $name = $this->_readString(1);
 
@@ -533,7 +533,7 @@ echo "length:        $length which is 0x".dechex($length)."\n";
 echo '** Parsing sheet at offset: '.dechex($boundsheet['offset'])."\n";
 
             require_once 'Spreadsheet/Excel/Reader/Parser/Worksheet.php';
-            $parser = new Spreadsheet_Excel_Reader_Parser_Worksheet($this->_stream, $workbook);
+            $parser = new Spreadsheet_Excel_Reader_Parser_Worksheet($this->_stream, $workbook, $this->version);
             $worksheet = $parser->parse();
             $worksheet->name = $boundsheet['name'];
 
