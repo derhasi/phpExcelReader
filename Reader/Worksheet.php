@@ -24,12 +24,10 @@ class Excel_Worksheet
     public $numRows = 0;
     public $numCols = 0;
     
-    /*
     function __construct(Excel_Workbook $workbook)
     {
         $this->workbook = $workbook;
     }
-    */
 
     public function addCell($row, $col, $xf, $value, $type = 'Unknown', $raw = null)
     {
@@ -43,6 +41,21 @@ class Excel_Worksheet
 
     public function toArray()
     {
+    }
+
+    public function getCell($x, $y)
+    {
+        if (is_string($x) && !is_numeric($x)) {
+            $col = 0;
+            foreach (str_split(strtoupper($x)) as $letter) {
+                $col += ord($letter) - 65;
+            }
+            $row = $y - 1;
+        } else {
+            $row = $x;
+            $col = $y;
+        }
+        return $this->cells[$row][$col];
     }
 
     public function getSelectedCells()

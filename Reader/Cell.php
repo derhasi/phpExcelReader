@@ -1,5 +1,7 @@
 <?php
 
+require_once 'Spreadsheet/Excel/Reader/Worksheet.php';
+
 class Excel_Cell
 {
     private $_type;
@@ -18,6 +20,7 @@ class Excel_Cell
 
     public function __construct(Excel_Worksheet $worksheet, $row, $col, $xf, $value, $type = 'LABEL')
     {
+        $this->worksheet  = $worksheet;
         $this->_row_index = $row;
         $this->_col_index = $col;
         $this->_xf_index  = $xf;
@@ -61,17 +64,30 @@ class Excel_Cell
     );
 
 
-    private function format()
+    public function __toString()
     {
-        $format_index = $this->worksheet->workbook->xf_records[$this->xf_index]['format_index'];
+        return (string) $this->format();
+    }
+
+    public function format($format = null)
+    {
+        if (!is_null($format) && is_int($format)) {
+            $format_index = $format;
+        } else if (!is_null($format)) {
+            // do something with the format str
+        } else {
+            $format_index = $this->worksheet->workbook->xf_records[$this->_xf_index]['format_index'];
+        }
+
         $format_str   = $this->worksheet->workbook->format_records[$format_index];
 
-        $type = $this->getNumberType();
-
+        $type = $this->getType();
         if ($type === 'DATE') {
-            return $this->getDateFormat();
+            return $this->getDateFormat($format_str);
         } else if ($type === 'NUMBER') {
-            return $this->getNumberFormat();
+            return $this->getNumberFormat($format_str);
+        } else {
+            return $this->_value;
         }
     }
 
@@ -120,7 +136,7 @@ class Excel_Cell
 
     public function getDate()
     {
-        $utc_offset = $this->workbook->datemode === 1 ?
+        $utc_offset = $this->worksheet->workbook->datemode === 1 ?
                       Spreadsheet_Excel_Reader::UTCOFFSETDAYS1904 :
                       Spreadsheet_Excel_Reader::UTCOFFSETDAYS;
         $utc_days = $this->_value - $utc_offset;
@@ -128,19 +144,25 @@ class Excel_Cell
         return new DateTime(date('r', $utc_secs));
     }
 
-    public function getNumberType()
+    public function getType()
     {
-        $xf_record = $this->worksheet->workbook->xf_records[$this->xf_index];
+        $format_index = $this->worksheet->workbook->xf_records[$this->_xf_index]['format_index'];
+        $format_str   = $this->worksheet->workbook->format_records[$format_index];
 
         // need to improve this check
-        if ($xf_record['format_index'] >= 14 && $xf_record['format_index'] <= 22) {
+        if ($format_index >= 14 && $format_index <= 22 ||
+            $format_index >= Excel_Workbook::USER_DEFINED_FORMATS && preg_match('/[dmY]/', $format_str)) {
 
             return 'DATE';
 
         // need to improve this check
-        } else if ($xf_record['format_index'] >= 5 && $xf_record['format_index'] <= 8) {
+        } else if ($format_index >= 5 && $format_index <= 8) {
 
             return 'MONEY';
+
+        } else if ($format_index == 0) {
+
+            return 'LABEL';
 
         } else { 
 
@@ -149,15 +171,15 @@ class Excel_Cell
 
 /*
         if (['type'] == 'date') {
-            $this->curformat = $this->workbook->xf_records[$xf_index]['format'];
+            $this->curformat = $this->workbook->xf_records[$_xf_index]['format'];
             $this->rectype = 'date';
             return true;
 
         } else {
-            if ($this->workbook->xf_records[$xf_index]['type'] == 'number') {
-                $this->curformat = $this->workbook->xf_records[$xf_index]['format'];
+            if ($this->workbook->xf_records[$_xf_index]['type'] == 'number') {
+                $this->curformat = $this->workbook->xf_records[$_xf_index]['format'];
                 $this->rectype = 'number';
-                if (($xf_index == 0x9) || ($xf_index == 0xa)){
+                if (($_xf_index == 0x9) || ($_xf_index == 0xa)){
                     $this->multiplier = 100;
                 }
             }else{

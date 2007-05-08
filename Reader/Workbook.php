@@ -2,6 +2,8 @@
 
 class Excel_Workbook
 {
+    const USER_DEFINED_FORMATS = 164;
+
     /**
      * List of worksheets that form part of this workbook
      * 
