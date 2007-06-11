@@ -1,7 +1,36 @@
 <?php
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+/**
+ * Class for parsing workbook streams within a BIFF file
+ * 
+ * @category   Spreadsheet
+ * @package    Spreadsheet_Excel_Reader
+ * @author     David Sanders <shangxiao@php.net>
+ * @copyright  Copyright &copy; 2007, David Sanders
+ * @license    LGPL <http://www.gnu.org/licenses/lgpl.html>
+ * @version    Release: @release@
+ * @link       http://pear.php.net/package/Spreadsheet_Excel_Reader
+ * @see        OLE
+ * @see        Spreadsheet_Excel
+ */
 
 require_once 'Spreadsheet/Excel/Reader/BIFFParser.php';
-require_once 'Spreadsheet/Excel/Reader/Workbook.php';
+require_once 'Spreadsheet/Excel/Workbook.php';
+
+/**
+ * Class for parsing workbook streams within a BIFF file
+ * 
+ * @category   Spreadsheet
+ * @package    Spreadsheet_Excel_Reader
+ * @author     David Sanders <shangxiao@php.net>
+ * @copyright  Copyright &copy; 2007, David Sanders
+ * @license    LGPL <http://www.gnu.org/licenses/lgpl.html>
+ * @version    Release: @release@
+ * @link       http://pear.php.net/package/Spreadsheet_Excel_Reader
+ * @see        OLE
+ * @see        Spreadsheet_Excel
+ */
 
 class Spreadsheet_Excel_Reader_BIFFParser_Workbook extends Spreadsheet_Excel_Reader_BIFFParser
 {
