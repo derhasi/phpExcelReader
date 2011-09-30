@@ -967,7 +967,7 @@ class Spreadsheet_Excel_Reader
     {
         if ($numValue > 1) {
             $utcDays = $numValue - ($this->nineteenFour ? SPREADSHEET_EXCEL_READER_UTCOFFSETDAYS1904 : SPREADSHEET_EXCEL_READER_UTCOFFSETDAYS);
-            $utcValue = round(($utcDays+1) * SPREADSHEET_EXCEL_READER_MSINADAY);
+            $utcValue = round(($utcDays) * SPREADSHEET_EXCEL_READER_MSINADAY);
             $string = date ($this->curformat, $utcValue);
             $raw = $utcValue;
         } else {
