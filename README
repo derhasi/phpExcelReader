@@ -23,3 +23,8 @@ For use encoding you must have installed iconv extension, otherwise data output 
 
 HOW TO USE
 see example.php
+
+LICENSE
+As stated on the project page http://sourceforge.net/projects/phpexcelreader/ the project is licensed under the
+GNU Library or Lesser General Public License (LGPL)
+@see http://www.gnu.org/licenses/lgpl.html
